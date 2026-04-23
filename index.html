@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Culebrita - Récord Mundial</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div id="game-container">
+    <h1>Culebrita 🐍</h1>
+    <div id="score-board">
+      <span>Puntos: <span id="score">0</span></span>
+      <span>Récord: <span id="high-score">0</span></span>
+    </div>
+    <canvas id="game-canvas" width="400" height="400"></canvas>
+    <div id="confetti-layer"></div>
+    <p id="controls-hint">← ↑ → ↓  ·  Espacio pausa</p>
+    <div id="action-bar">
+      <button id="restart-btn">Reiniciar</button>
+      <button id="records-btn">🏆 Récords</button>
+    </div>
+    <p id="current-user-display"></p>
+  </div>
+
+  <div id="username-modal" class="modal">
+    <div class="modal-content">
+      <h2>¿Quién eres?</h2>
+      <p>Ingresa tu nombre para competir por el récord mundial</p>
+      <input type="text" id="username-input" maxlength="16" placeholder="Tu nombre..." autofocus>
+      <button id="username-save-btn">¡A jugar!</button>
+    </div>
+  </div>
+
+  <div id="records-modal" class="modal">
+    <div class="modal-content">
+      <h2>🏆 Récords Mundiales</h2>
+      <ol id="records-list"></ol>
+      <p id="no-records-msg">Aún no hay récords. ¡Sé el primero!</p>
+      <button id="records-close-btn">Cerrar</button>
+    </div>
+  </div>
+
+  <div id="new-record-modal" class="modal">
+    <div class="modal-content celebration">
+      <h2>🎉 ¡NUEVO RÉCORD MUNDIAL! 🎉</h2>
+      <p id="new-record-name"></p>
+      <p id="new-record-score"></p>
+      <button id="new-record-close-btn">¡Sí!</button>
+    </div>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>

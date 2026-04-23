@@ -1,0 +1,249 @@
+*, *::before, *::after {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  background: #0f0f1a;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  font-family: 'Segoe UI', system-ui, sans-serif;
+}
+
+#game-container {
+  background: #1a1a2e;
+  border-radius: 16px;
+  padding: 24px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+}
+
+h1 {
+  color: #00d4aa;
+  font-size: 1.8rem;
+  margin-bottom: 12px;
+  letter-spacing: 2px;
+}
+
+#score-board {
+  display: flex;
+  justify-content: space-between;
+  color: #a0a0c0;
+  font-size: 1rem;
+  margin-bottom: 12px;
+  padding: 0 8px;
+}
+
+#score-board span {
+  background: #16162a;
+  padding: 6px 18px;
+  border-radius: 8px;
+}
+
+#score, #high-score {
+  color: #ffd700;
+  font-weight: 700;
+}
+
+#game-canvas {
+  display: block;
+  margin: 0 auto;
+  border: 2px solid #2a2a4a;
+  border-radius: 8px;
+  background: #12121e;
+  position: relative;
+  z-index: 1;
+}
+
+#confetti-layer {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 0;
+}
+
+#controls-hint {
+  color: #5a5a7a;
+  font-size: 0.85rem;
+  margin: 12px 0 8px;
+}
+
+#action-bar {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+  margin-top: 8px;
+}
+
+#restart-btn, #records-btn {
+  border: none;
+  padding: 10px 24px;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s, transform 0.1s;
+}
+
+#restart-btn {
+  background: #00d4aa;
+  color: #0f0f1a;
+}
+
+#restart-btn:hover {
+  background: #00f0c0;
+}
+
+#records-btn {
+  background: #2a2a4a;
+  color: #ffd700;
+}
+
+#records-btn:hover {
+  background: #3a3a5a;
+}
+
+#restart-btn:active, #records-btn:active {
+  transform: scale(0.96);
+}
+
+#current-user-display {
+  color: #5a5a7a;
+  font-size: 0.8rem;
+  margin-top: 8px;
+}
+
+/* Modal base */
+.modal {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.7);
+  justify-content: center;
+  align-items: center;
+  z-index: 100;
+}
+
+.modal.active {
+  display: flex;
+}
+
+.modal-content {
+  background: #1a1a2e;
+  border-radius: 16px;
+  padding: 32px;
+  max-width: 360px;
+  width: 90%;
+  text-align: center;
+  box-shadow: 0 8px 40px rgba(0, 0, 0, 0.6);
+}
+
+.modal-content h2 {
+  color: #00d4aa;
+  margin-bottom: 12px;
+}
+
+.modal-content p {
+  color: #a0a0c0;
+  font-size: 0.9rem;
+  margin-bottom: 16px;
+}
+
+.modal-content input {
+  width: 100%;
+  padding: 12px 16px;
+  border: 2px solid #2a2a4a;
+  border-radius: 8px;
+  background: #12121e;
+  color: #ffffff;
+  font-size: 1rem;
+  outline: none;
+  transition: border-color 0.2s;
+  margin-bottom: 16px;
+}
+
+.modal-content input:focus {
+  border-color: #00d4aa;
+}
+
+.modal-content button {
+  background: #00d4aa;
+  color: #0f0f1a;
+  border: none;
+  padding: 12px 32px;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.modal-content button:hover {
+  background: #00f0c0;
+}
+
+#no-records-msg {
+  color: #5a5a7a;
+  font-style: italic;
+}
+
+#records-list {
+  list-style: none;
+  padding: 0;
+  margin-bottom: 16px;
+  text-align: left;
+}
+
+#records-list li {
+  color: #c0c0e0;
+  padding: 8px 12px;
+  border-bottom: 1px solid #2a2a4a;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.95rem;
+}
+
+#records-list li:first-child {
+  color: #ffd700;
+  font-weight: 700;
+  font-size: 1.05rem;
+}
+
+#records-list li:first-child::before {
+  content: "👑 ";
+}
+
+#records-list li:nth-child(2) {
+  color: #c0c0c0;
+}
+
+#records-list li:nth-child(3) {
+  color: #cd7f32;
+}
+
+.celebration h2 {
+  color: #ffd700;
+  font-size: 1.5rem;
+}
+
+#new-record-name {
+  color: #ffffff;
+  font-size: 1.2rem;
+  font-weight: 700;
+}
+
+#new-record-score {
+  color: #ffd700;
+  font-size: 1.8rem;
+  font-weight: 700;
+  margin-bottom: 20px;
+}
