@@ -1,3 +1,49 @@
+:root {
+  --bg: #0f0f1a;
+  --container-bg: #1a1a2e;
+  --text: #a0a0c0;
+  --text-bright: #ffffff;
+  --score-bg: #16162a;
+  --score-color: #ffd700;
+  --canvas-bg: #12121e;
+  --border: #2a2a4a;
+  --grid: #1a1a30;
+  --hint: #5a5a7a;
+  --accent: #00d4aa;
+  --accent-hover: #00f0c0;
+  --shadow: rgba(0, 0, 0, 0.5);
+  --modal-overlay: rgba(0, 0, 0, 0.7);
+  --record-name: #ffffff;
+  --record-color: #c0c0e0;
+  --record-border: #2a2a4a;
+  --records-btn-bg: #2a2a4a;
+  --input-bg: #12121e;
+  --input-text: #ffffff;
+}
+
+[data-theme="light"] {
+  --bg: #e8e8f0;
+  --container-bg: #ffffff;
+  --text: #555577;
+  --text-bright: #222244;
+  --score-bg: #e8e8f0;
+  --score-color: #c8960a;
+  --canvas-bg: #fafafe;
+  --border: #d0d0da;
+  --grid: #e0e0ea;
+  --hint: #9999aa;
+  --accent: #00a67e;
+  --accent-hover: #00c090;
+  --shadow: rgba(0, 0, 0, 0.15);
+  --modal-overlay: rgba(0, 0, 0, 0.4);
+  --record-name: #222;
+  --record-color: #444;
+  --record-border: #ddd;
+  --records-btn-bg: #e0e0ea;
+  --input-bg: #f5f5fa;
+  --input-text: #222;
+}
+
 *, *::before, *::after {
   margin: 0;
   padding: 0;
@@ -5,59 +51,91 @@
 }
 
 body {
-  background: #0f0f1a;
+  background: var(--bg);
   display: flex;
   justify-content: center;
   align-items: center;
   min-height: 100vh;
   font-family: 'Segoe UI', system-ui, sans-serif;
+  transition: background 0.3s;
 }
 
 #game-container {
-  background: #1a1a2e;
+  background: var(--container-bg);
   border-radius: 16px;
   padding: 24px;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+  box-shadow: 0 8px 32px var(--shadow);
   text-align: center;
   position: relative;
   overflow: hidden;
+  transition: background 0.3s, box-shadow 0.3s;
+}
+
+#header {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 12px;
 }
 
 h1 {
-  color: #00d4aa;
+  color: var(--accent);
   font-size: 1.8rem;
-  margin-bottom: 12px;
   letter-spacing: 2px;
+  transition: color 0.3s;
+}
+
+#theme-toggle {
+  background: none;
+  border: 2px solid var(--border);
+  border-radius: 50%;
+  width: 36px;
+  height: 36px;
+  font-size: 1.1rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: border-color 0.2s, background 0.2s;
+  line-height: 1;
+}
+
+#theme-toggle:hover {
+  border-color: var(--accent);
+  background: var(--score-bg);
 }
 
 #score-board {
   display: flex;
   justify-content: space-between;
-  color: #a0a0c0;
+  color: var(--text);
   font-size: 1rem;
   margin-bottom: 12px;
   padding: 0 8px;
 }
 
 #score-board span {
-  background: #16162a;
+  background: var(--score-bg);
   padding: 6px 18px;
   border-radius: 8px;
+  transition: background 0.3s;
 }
 
 #score, #high-score {
-  color: #ffd700;
+  color: var(--score-color);
   font-weight: 700;
 }
 
 #game-canvas {
   display: block;
   margin: 0 auto;
-  border: 2px solid #2a2a4a;
+  border: 2px solid var(--border);
   border-radius: 8px;
-  background: #12121e;
+  background: var(--canvas-bg);
   position: relative;
   z-index: 1;
+  transition: border-color 0.3s, background 0.3s;
 }
 
 #confetti-layer {
@@ -71,9 +149,10 @@ h1 {
 }
 
 #controls-hint {
-  color: #5a5a7a;
+  color: var(--hint);
   font-size: 0.85rem;
   margin: 12px 0 8px;
+  transition: color 0.3s;
 }
 
 #action-bar {
@@ -94,21 +173,21 @@ h1 {
 }
 
 #restart-btn {
-  background: #00d4aa;
+  background: var(--accent);
   color: #0f0f1a;
 }
 
 #restart-btn:hover {
-  background: #00f0c0;
+  background: var(--accent-hover);
 }
 
 #records-btn {
-  background: #2a2a4a;
-  color: #ffd700;
+  background: var(--records-btn-bg);
+  color: var(--score-color);
 }
 
 #records-btn:hover {
-  background: #3a3a5a;
+  background: var(--border);
 }
 
 #restart-btn:active, #records-btn:active {
@@ -116,9 +195,10 @@ h1 {
 }
 
 #current-user-display {
-  color: #5a5a7a;
+  color: var(--hint);
   font-size: 0.8rem;
   margin-top: 8px;
+  transition: color 0.3s;
 }
 
 /* Modal base */
@@ -126,7 +206,7 @@ h1 {
   display: none;
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 0.7);
+  background: var(--modal-overlay);
   justify-content: center;
   align-items: center;
   z-index: 100;
@@ -137,45 +217,48 @@ h1 {
 }
 
 .modal-content {
-  background: #1a1a2e;
+  background: var(--container-bg);
   border-radius: 16px;
   padding: 32px;
   max-width: 360px;
   width: 90%;
   text-align: center;
-  box-shadow: 0 8px 40px rgba(0, 0, 0, 0.6);
+  box-shadow: 0 8px 40px var(--shadow);
+  transition: background 0.3s;
 }
 
 .modal-content h2 {
-  color: #00d4aa;
+  color: var(--accent);
   margin-bottom: 12px;
+  transition: color 0.3s;
 }
 
 .modal-content p {
-  color: #a0a0c0;
+  color: var(--text);
   font-size: 0.9rem;
   margin-bottom: 16px;
+  transition: color 0.3s;
 }
 
 .modal-content input {
   width: 100%;
   padding: 12px 16px;
-  border: 2px solid #2a2a4a;
+  border: 2px solid var(--border);
   border-radius: 8px;
-  background: #12121e;
-  color: #ffffff;
+  background: var(--input-bg);
+  color: var(--input-text);
   font-size: 1rem;
   outline: none;
-  transition: border-color 0.2s;
+  transition: border-color 0.2s, background 0.3s, color 0.3s;
   margin-bottom: 16px;
 }
 
 .modal-content input:focus {
-  border-color: #00d4aa;
+  border-color: var(--accent);
 }
 
 .modal-content button {
-  background: #00d4aa;
+  background: var(--accent);
   color: #0f0f1a;
   border: none;
   padding: 12px 32px;
@@ -187,11 +270,11 @@ h1 {
 }
 
 .modal-content button:hover {
-  background: #00f0c0;
+  background: var(--accent-hover);
 }
 
 #no-records-msg {
-  color: #5a5a7a;
+  color: var(--hint);
   font-style: italic;
 }
 
@@ -203,17 +286,18 @@ h1 {
 }
 
 #records-list li {
-  color: #c0c0e0;
+  color: var(--record-color);
   padding: 8px 12px;
-  border-bottom: 1px solid #2a2a4a;
+  border-bottom: 1px solid var(--record-border);
   display: flex;
   justify-content: space-between;
   align-items: center;
   font-size: 0.95rem;
+  transition: color 0.3s, border-color 0.3s;
 }
 
 #records-list li:first-child {
-  color: #ffd700;
+  color: var(--score-color);
   font-weight: 700;
   font-size: 1.05rem;
 }
@@ -231,18 +315,19 @@ h1 {
 }
 
 .celebration h2 {
-  color: #ffd700;
+  color: var(--score-color);
   font-size: 1.5rem;
 }
 
 #new-record-name {
-  color: #ffffff;
+  color: var(--record-name);
   font-size: 1.2rem;
   font-weight: 700;
+  transition: color 0.3s;
 }
 
 #new-record-score {
-  color: #ffd700;
+  color: var(--score-color);
   font-size: 1.8rem;
   font-weight: 700;
   margin-bottom: 20px;
