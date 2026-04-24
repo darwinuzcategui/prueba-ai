@@ -16,7 +16,8 @@ export class SnakeService {
   readonly worldRecord = signal<number>(this.config.worldRecord);
   readonly showConfetti = signal<boolean>(false);
   readonly isEating = signal<boolean>(false);
-  readonly mouthOpen = signal<number>(0);
+  readonly isHissing = signal<boolean>(false);
+  readonly tongueOut = signal<boolean>(false);
 
   readonly boardSize = computed(() => ({
     width: this.config.boardWidth * this.config.cellSize,
@@ -36,53 +37,94 @@ export class SnakeService {
     if (!this.audioContext) return;
 
     const ctx = this.audioContext;
-    const oscillator = ctx.createOscillator();
-    const gainNode = ctx.createGain();
 
-    oscillator.connect(gainNode);
-    gainNode.connect(ctx.destination);
+    const noise = ctx.createBufferSource();
+    const buffer = ctx.createBuffer(1, ctx.sampleRate * 0.15, ctx.sampleRate);
+    const data = buffer.getChannelData(0);
+    for (let i = 0; i < data.length; i++) {
+      data[i] = (Math.random() * 2 - 1) * Math.exp(-i / (ctx.sampleRate * 0.05));
+    }
+    noise.buffer = buffer;
 
-    oscillator.frequency.setValueAtTime(200, ctx.currentTime);
-    oscillator.frequency.exponentialRampToValueAtTime(80, ctx.currentTime + 0.1);
+    const filter = ctx.createBiquadFilter();
+    filter.type = 'lowpass';
+    filter.frequency.value = 800;
 
-    gainNode.gain.setValueAtTime(0.3, ctx.currentTime);
-    gainNode.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.15);
+    const gain = ctx.createGain();
+    gain.gain.setValueAtTime(0.4, ctx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.15);
 
-    oscillator.start(ctx.currentTime);
-    oscillator.stop(ctx.currentTime + 0.15);
+    noise.connect(filter);
+    filter.connect(gain);
+    gain.connect(ctx.destination);
+    noise.start(ctx.currentTime);
 
-    const oscillator2 = ctx.createOscillator();
-    const gainNode2 = ctx.createGain();
-    oscillator2.connect(gainNode2);
-    gainNode2.connect(ctx.destination);
-    oscillator2.frequency.setValueAtTime(150, ctx.currentTime + 0.05);
-    oscillator2.frequency.exponentialRampToValueAtTime(60, ctx.currentTime + 0.12);
-    gainNode2.gain.setValueAtTime(0.2, ctx.currentTime + 0.05);
-    gainNode2.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.12);
-    oscillator2.start(ctx.currentTime + 0.05);
-    oscillator2.stop(ctx.currentTime + 0.12);
+    const osc = ctx.createOscillator();
+    const oscGain = ctx.createGain();
+    osc.frequency.setValueAtTime(120, ctx.currentTime);
+    osc.frequency.exponentialRampToValueAtTime(60, ctx.currentTime + 0.1);
+    osc.type = 'sawtooth';
+    oscGain.gain.setValueAtTime(0.2, ctx.currentTime);
+    oscGain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.1);
+    osc.connect(oscGain);
+    oscGain.connect(ctx.destination);
+    osc.start(ctx.currentTime);
+    osc.stop(ctx.currentTime + 0.1);
   }
 
-  private playGameOverSound(): void {
+  private playHissSound(): void {
     this.initAudio();
     if (!this.audioContext) return;
 
     const ctx = this.audioContext;
-    const oscillator = ctx.createOscillator();
-    const gainNode = ctx.createGain();
+    const noise = ctx.createBufferSource();
+    const buffer = ctx.createBuffer(1, ctx.sampleRate * 0.3, ctx.sampleRate);
+    const data = buffer.getChannelData(0);
+    for (let i = 0; i < data.length; i++) {
+      const t = i / ctx.sampleRate;
+      data[i] = (Math.random() * 2 - 1) * Math.sin(t * 10) * Math.exp(-t * 4);
+    }
+    noise.buffer = buffer;
 
-    oscillator.connect(gainNode);
-    gainNode.connect(ctx.destination);
+    const filter = ctx.createBiquadFilter();
+    filter.type = 'bandpass';
+    filter.frequency.value = 2000;
+    filter.Q.value = 2;
 
-    oscillator.frequency.setValueAtTime(300, ctx.currentTime);
-    oscillator.frequency.exponentialRampToValueAtTime(100, ctx.currentTime + 0.3);
-    oscillator.type = 'sawtooth';
+    const gain = ctx.createGain();
+    gain.gain.setValueAtTime(0.15, ctx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.3);
 
-    gainNode.gain.setValueAtTime(0.2, ctx.currentTime);
-    gainNode.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.3);
+    noise.connect(filter);
+    filter.connect(gain);
+    gain.connect(ctx.destination);
+    noise.start(ctx.currentTime);
+  }
 
-    oscillator.start(ctx.currentTime);
-    oscillator.stop(ctx.currentTime + 0.3);
+  private playSlitherSound(): void {
+    this.initAudio();
+    if (!this.audioContext) return;
+
+    const ctx = this.audioContext;
+    const noise = ctx.createBufferSource();
+    const buffer = ctx.createBuffer(1, ctx.sampleRate * 0.05, ctx.sampleRate);
+    const data = buffer.getChannelData(0);
+    for (let i = 0; i < data.length; i++) {
+      data[i] = (Math.random() * 2 - 1) * 0.3;
+    }
+    noise.buffer = buffer;
+
+    const filter = ctx.createBiquadFilter();
+    filter.type = 'highpass';
+    filter.frequency.value = 500;
+
+    const gain = ctx.createGain();
+    gain.gain.setValueAtTime(0.05, ctx.currentTime);
+
+    noise.connect(filter);
+    filter.connect(gain);
+    gain.connect(ctx.destination);
+    noise.start(ctx.currentTime);
   }
 
   updateConfig(newConfig: Partial<GameConfig>): void {
@@ -95,19 +137,21 @@ export class SnakeService {
   }
 
   initGame(): void {
+    this.tongueOut.set(true);
+    setTimeout(() => this.tongueOut.set(false), 2000);
+
     const startX = Math.floor(this.config.boardWidth / 4);
     const startY = Math.floor(this.config.boardHeight / 2);
     const snake: SnakePart[] = [
-      { pos: { x: startX, y: startY }, scale: 1.1, rotation: 0, isHead: true },
-      { pos: { x: startX - 1, y: startY }, scale: 1, rotation: 0, isHead: false },
-      { pos: { x: startX - 2, y: startY }, scale: 0.95, rotation: 0, isHead: false },
+      { pos: { x: startX, y: startY }, scale: 1, rotation: 0, isHead: true },
+      { pos: { x: startX - 1, y: startY }, scale: 0.95, rotation: 0, isHead: false },
+      { pos: { x: startX - 2, y: startY }, scale: 0.88, rotation: 0, isHead: false },
     ];
     this.snake.set(snake);
     this.direction.set('RIGHT');
     this.nextDirection.set('RIGHT');
     this.score.set(0);
     this.showConfetti.set(false);
-    this.mouthOpen.set(0);
     this.spawnFood();
     this.gameState.set('PLAYING');
     this.startGameLoop();
@@ -148,6 +192,7 @@ export class SnakeService {
     };
     if (opposites[dir] !== this.direction()) {
       this.nextDirection.set(dir);
+      this.playSlitherSound();
     }
   }
 
@@ -169,7 +214,8 @@ export class SnakeService {
     const rotation = this.getRotationForDirection(nextDir);
 
     if (this.checkCollision(newHeadPos)) {
-      this.playGameOverSound();
+      this.isHissing.set(true);
+      setTimeout(() => this.isHissing.set(false), 500);
       this.gameOver();
       return;
     }
@@ -178,40 +224,44 @@ export class SnakeService {
 
     if (isEating) {
       this.isEating.set(true);
-      this.mouthOpen.set(1);
+      this.isHissing.set(true);
       this.playEatSound();
+      setTimeout(() => this.playHissSound(), 50);
 
       setTimeout(() => {
-        this.mouthOpen.set(0);
         this.isEating.set(false);
-      }, 250);
+        this.isHissing.set(false);
+      }, 300);
 
       this.score.update(s => s + 10);
       this.checkWorldRecord();
       this.spawnFood();
 
       const newSnake = [
-        { pos: newHeadPos, scale: 1.15, rotation, isHead: true },
+        { pos: newHeadPos, scale: 1.1, rotation, isHead: true },
         ...currentSnake.map((part, i) => ({
           ...part,
-          scale: Math.min(1.15, 0.9 + (i * 0.02)),
+          scale: Math.min(1.05, 0.92 + (i * 0.01)),
           isHead: false,
         })),
-        { ...currentSnake[currentSnake.length - 1], scale: Math.min(1.1, currentSnake[currentSnake.length - 1].scale + 0.03) },
+        { ...currentSnake[currentSnake.length - 1], scale: Math.min(1, currentSnake[currentSnake.length - 1].scale + 0.02) },
       ];
       this.snake.set(newSnake);
     } else {
-      this.mouthOpen.set(0);
+      this.tongueOut.set(true);
+      setTimeout(() => this.tongueOut.set(false), 500);
+
       const newSnake = [
-        { pos: newHeadPos, scale: 1.1, rotation, isHead: true },
+        { pos: newHeadPos, scale: 1, rotation, isHead: true },
         ...currentSnake.slice(0, -1).map((part, i) => ({
           ...part,
-          scale: i === 0 ? 1.1 : Math.max(0.65, 0.95 - (i * 0.015)),
+          scale: i === 0 ? 1 : Math.max(0.5, 0.95 - (i * 0.02)),
           rotation: i === 0 ? rotation : part.rotation,
           isHead: false,
         })),
       ];
       this.snake.set(newSnake);
+      this.playSlitherSound();
     }
   }
 
@@ -269,29 +319,25 @@ export class SnakeService {
     const x = part.pos.x * cellSize;
     const y = part.pos.y * cellSize;
 
-    const width = cellSize * baseScale * (isHead ? 1.3 : 1.1);
-    const height = cellSize * baseScale * (isHead ? 1.1 : 1.05);
+    const width = cellSize * baseScale * (isHead ? 1.2 : 1.0);
+    const height = cellSize * baseScale * (isHead ? 1.15 : 0.95);
     const left = x - (width - cellSize) / 2;
     const top = y - (height - cellSize) / 2;
 
-    const baseHue = 95 + Math.sin(index * 0.5) * 15;
-    const saturation = 75 - progress * 20;
-    const lightness = 28 - progress * 12;
+    const baseHue = 85 + Math.sin(index * 0.3) * 20;
+    const saturation = 80 + progress * 10;
+    const lightness = 40 + Math.sin(index * 0.5) * 8;
 
     const darkColor = `hsl(${baseHue}, ${saturation}%, ${lightness}%)`;
-    const midColor = `hsl(${baseHue + 5}, ${saturation + 5}%, ${lightness + 8}%)`;
-    const lightColor = `hsl(${baseHue + 10}, ${saturation - 10}%, ${lightness + 15}%)`;
+    const midColor = `hsl(${baseHue + 15}, ${saturation + 10}%, ${lightness + 12}%)`;
+    const lightColor = `hsl(${baseHue + 25}, ${saturation - 10}%, ${lightness + 25}%)`;
+    const shadowColor = `hsl(${baseHue - 15}, ${saturation}%, ${lightness - 15}%)`;
 
     const borderRadius = isHead
-      ? '65% 35% 45% 55% / 50% 45% 55% 50%'
-      : progress < 0.15
-        ? '60% 40% 50% 50% / 55% 45% 55% 45%'
-        : progress < 0.5
-          ? '50% 50% 45% 55% / 50% 50% 50% 50%'
-          : '45% 55% 55% 45% / 45% 55% 45% 55%';
+      ? '35% 65% 55% 45% / 40% 45% 55% 60%'
+      : `ellipse at ${50 + Math.sin(index * 1.5) * 30}% ${50 + Math.cos(index * 1.2) * 30}%`;
 
-    const glowIntensity = isHead ? 0.9 : (0.7 - progress * 0.45);
-    const glowSize = isHead ? 18 : Math.max(4, 12 - progress * 8);
+    const patternOpacity = isHead ? 0.4 : (0.3 - progress * 0.2);
 
     return {
       position: 'absolute',
@@ -300,22 +346,22 @@ export class SnakeService {
       width: `${width}px`,
       height: `${height}px`,
       background: `
-        radial-gradient(ellipse at 25% 25%, ${lightColor} 0%, transparent 45%),
-        radial-gradient(ellipse at 75% 75%, ${darkColor} 0%, transparent 50%),
-        radial-gradient(ellipse at 50% 50%, ${midColor} 0%, ${darkColor} 70%),
-        linear-gradient(${isHead ? '160deg' : '145deg'}, ${midColor} 0%, ${darkColor} 50%, ${darkColor} 100%)
+        radial-gradient(ellipse at 20% 20%, ${lightColor} 0%, transparent 40%),
+        radial-gradient(ellipse at 80% 80%, ${shadowColor} 0%, transparent 50%),
+        radial-gradient(ellipse at 50% 50%, ${midColor} 0%, ${darkColor} 60%),
+        linear-gradient(${isHead ? '165deg' : '150deg'}, ${midColor} 0%, ${darkColor} 50%, ${shadowColor} 100%)
       `,
       borderRadius,
       boxShadow: `
-        inset 3px 3px 6px ${lightColor},
-        inset -3px -3px 6px ${darkColor},
-        inset 0 0 15px rgba(0,0,0,0.3),
-        0 0 ${glowSize}px hsla(${baseHue}, 85%, 40%, ${glowIntensity})
+        inset 4px 4px 8px ${lightColor},
+        inset -4px -4px 8px ${shadowColor},
+        inset 0 0 20px rgba(0,0,0,0.5),
+        0 0 ${isHead ? 15 : Math.max(3, 12 - progress * 10)}px hsla(${baseHue}, 50%, 25%, ${isHead ? 0.8 : (0.6 - progress * 0.4)})
       `,
-      transform: `rotate(${part.rotation}deg) scaleY(${isHead ? 1 : 1 - progress * 0.15})`,
+      transform: `rotate(${part.rotation}deg) scaleY(${isHead ? 1 : 0.92})`,
       zIndex: String(total - index),
-      transition: 'left 0.05s linear, top 0.05s linear, width 0.08s, height 0.08s, transform 0.05s',
-      filter: `brightness(${1 - progress * 0.15}) saturate(${1.1 + progress * 0.2})`,
+      transition: 'left 0.04s linear, top 0.04s linear, width 0.06s, height 0.06s, transform 0.04s',
+      filter: `brightness(${0.9 - progress * 0.1}) saturate(${1.15 + progress * 0.15}) contrast(${1.05 + progress * 0.1})`,
     };
   }
 
@@ -329,14 +375,14 @@ export class SnakeService {
       width: `${cellSize}px`,
       height: `${cellSize}px`,
       background: `
-        radial-gradient(ellipse at 30% 30%, #ff9966 0%, #e64a19 30%, #bf360c 60%, #8b1a1a 100%)
+        radial-gradient(ellipse at 35% 35%, #8B4513 0%, #A0522D 25%, #CD853F 45%, #8B4513 70%, #5D3A1A 100%)
       `,
-      borderRadius: '45% 55% 50% 50% / 50% 45% 55% 50%',
+      borderRadius: '40% 60% 55% 45% / 50% 45% 55% 50%',
       boxShadow: `
-        inset 4px 4px 10px rgba(255,200,150,0.5),
-        inset -3px -3px 8px rgba(0,0,0,0.4),
-        0 0 ${cellSize * 0.5}px rgba(255,80,30,0.8),
-        0 0 ${cellSize}px rgba(255,50,20,0.5)
+        inset 3px 3px 8px rgba(210,180,140,0.4),
+        inset -2px -2px 6px rgba(0,0,0,0.5),
+        0 0 ${cellSize * 0.4}px rgba(160,82,45,0.6),
+        0 0 ${cellSize * 0.8}px rgba(139,69,19,0.3)
       `,
       zIndex: '5',
     };

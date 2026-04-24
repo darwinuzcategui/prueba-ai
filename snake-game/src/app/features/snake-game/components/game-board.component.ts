@@ -31,12 +31,6 @@ interface ConfettiPiece {
             <label>Velocidad (ms):</label>
             <input type="number" [(ngModel)]="speedInput" min="50" max="500" step="10" />
           </div>
-          <div class="setting-item">
-            <label>Sonido:</label>
-            <button class="sound-btn" (click)="toggleSound()" [class.muted]="!soundEnabled">
-              {{ soundEnabled ? '🔊' : '🔇' }}
-            </button>
-          </div>
           <button class="btn-primary" (click)="applySettings()">Aplicar</button>
           <button class="btn-secondary" (click)="showSettings.set(false)">Cerrar</button>
         </div>
@@ -82,72 +76,117 @@ interface ConfettiPiece {
             [style]="snakeService.getSnakePartStyle(segment, $index, snakeService.snake().length)"
           >
             @if (segment.isHead) {
-              <div class="snake-head" [class.eating]="snakeService.mouthOpen() > 0">
-                <div class="head-base">
-                  <div class="head-top">
-                    <div class="head-scale-row">
-                      <div class="scale detail"></div>
-                      <div class="scale detail"></div>
-                      <div class="scale detail"></div>
-                    </div>
+              <div class="snake-head" [class.eating]="snakeService.isEating()" [class.hissing]="snakeService.isHissing()">
+                <div class="head-cover">
+                  <div class="scale-row top">
+                    <div class="scale-plate"></div>
+                    <div class="scale-plate"></div>
+                    <div class="scale-plate"></div>
+                    <div class="scale-plate"></div>
+                    <div class="scale-plate"></div>
                   </div>
 
-                  <div class="eye-socket left" [class]="getDirectionClass()">
-                    <div class="eye">
-                      <div class="eyelid upper"></div>
-                      <div class="pupil" [class]="getDirectionClass()"></div>
-                      <div class="eyelid lower"></div>
-                    </div>
+                  <div class="heat-pits left-pit">
+                    <div class="pit-hole"></div>
+                    <div class="pit-glow"></div>
                   </div>
 
-                  <div class="eye-socket right" [class]="getDirectionClass()">
-                    <div class="eye">
-                      <div class="eyelid upper"></div>
-                      <div class="pupil" [class]="getDirectionClass()"></div>
-                      <div class="eyelid lower"></div>
-                    </div>
-                  </div>
-
-                  <div class="head-center">
-                    <div class="scale-row">
-                      <div class="scale center"></div>
-                      <div class="scale center"></div>
-                    </div>
-                  </div>
-
-                  <div class="snout-area" [class.open]="snakeService.mouthOpen() > 0">
-                    <div class="snout">
-                      <div class="nostril left"></div>
-                      <div class="nostril right"></div>
-                    </div>
-                    <div class="mouth" [class.open]="snakeService.mouthOpen() > 0">
-                      <div class="upper-jaw"></div>
-                      <div class="lower-jaw" [class.extended]="snakeService.mouthOpen() > 0.5"></div>
-                      @if (snakeService.mouthOpen() > 0.3) {
-                        <div class="fangs">
-                          <div class="fang left"></div>
-                          <div class="fang right"></div>
+                  <div class="eye-zone">
+                    <div class="eye-socket left-socket">
+                      <div class="eye-rim">
+                        <div class="eye-outer">
+                          <div class="pupil-slit" [class]="getDirectionClass()">
+                            <div class="pupil-highlight"></div>
+                          </div>
                         </div>
-                        <div class="tongue" [class.visible]="snakeService.mouthOpen() > 0.5"></div>
+                      </div>
+                    </div>
+
+                    <div class="inter-orbital">
+                      <div class="scale-plate center-brow"></div>
+                    </div>
+
+                    <div class="eye-socket right-socket">
+                      <div class="eye-rim">
+                        <div class="eye-outer">
+                          <div class="pupil-slit" [class]="getDirectionClass()">
+                            <div class="pupil-highlight"></div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div class="heat-pits right-pit">
+                    <div class="pit-hole"></div>
+                    <div class="pit-glow"></div>
+                  </div>
+
+                  <div class="scale-row bottom">
+                    <div class="scale-plate"></div>
+                    <div class="scale-plate"></div>
+                    <div class="scale-plate"></div>
+                    <div class="scale-plate"></div>
+                    <div class="scale-plate"></div>
+                  </div>
+
+                  <div class="snout-region">
+                    <div class="nasal-scales">
+                      <div class="scale-plate nasal left-nasal">
+                        <div class="nostril-hole"></div>
+                      </div>
+                      <div class="scale-plate nasal right-nasal">
+                        <div class="nostril-hole"></div>
+                      </div>
+                    </div>
+
+                    <div class="labial-row upper">
+                      @for (i of [1,2,3,4,5]; track i) {
+                        <div class="labial-scale"></div>
+                      }
+                    </div>
+
+                    <div class="mouth-region" [class.open]="snakeService.isEating()">
+                      <div class="upper-jaw"></div>
+                      <div class="mouth-interior">
+                        @if (snakeService.isEating()) {
+                          <div class="fang-pair left-fangs">
+                            <div class="fang"></div>
+                          </div>
+                          <div class="fang-pair right-fangs">
+                            <div class="fang"></div>
+                          </div>
+                        }
+                      </div>
+                      <div class="lower-jaw" [class.extended]="snakeService.isEating()"></div>
+                    </div>
+
+                    <div class="labial-row lower">
+                      @for (i of [1,2,3,4,5]; track i) {
+                        <div class="labial-scale"></div>
                       }
                     </div>
                   </div>
 
-                  <div class="head-bottom">
-                    <div class="head-scale-row">
-                      <div class="scale detail"></div>
-                      <div class="scale detail"></div>
-                      <div class="scale detail"></div>
-                    </div>
+                  <div class="tongue-region">
+                    @if (snakeService.tongueOut() || snakeService.isEating()) {
+                      <div class="tongue" [class.extended]="snakeService.isEating() || snakeService.tongueOut()">
+                        <div class="tongue-fork left-tine"></div>
+                        <div class="tongue-fork right-tine"></div>
+                      </div>
+                    }
                   </div>
                 </div>
               </div>
             } @else {
-              <div class="body-segment" [class.heading]="segment.scale > 0.9">
-                <div class="scale-pattern">
-                  @for (s of getScalePattern($index); track $index) {
-                    <div class="scale" [class]="s"></div>
-                  }
+              <div class="body-segment" [class.long-tail]="$index > snakeService.snake().length * 0.7">
+                <div class="segment-pattern">
+                  <div class="dorsal-scales">
+                    @for (s of getDorsalScales($index); track $index) {
+                      <div class="dorsal-plate" [class]="s"></div>
+                    }
+                  </div>
+                  <div class="lateral-line"></div>
                 </div>
               </div>
             }
@@ -190,7 +229,6 @@ interface ConfettiPiece {
       <div class="instructions">
         <span>ESPACIO: Iniciar/Pausar</span>
         <span>Flechas o WASD: Mover</span>
-        <span>🔊: Sonido {{ soundEnabled ? 'ON' : 'OFF' }}</span>
       </div>
     </div>
   `,
@@ -203,20 +241,20 @@ interface ConfettiPiece {
       --accent-green: #4ade80;
       --accent-yellow: #fbbf24;
       --accent-purple: #a855f7;
-      --board-bg: #050a0f;
-      --board-border: #1a3d15;
+      --board-bg: #050a05;
+      --board-border: #2d4a20;
     }
 
     :host-context([data-theme="light"]) {
-      --bg-primary: #e0e0e8;
-      --bg-secondary: #f5f5f5;
+      --bg-primary: #d5d5d8;
+      --bg-secondary: #e8e8e8;
       --text-primary: #1a1a2e;
       --text-secondary: #6b7280;
       --accent-green: #22c55e;
       --accent-yellow: #f59e0b;
       --accent-purple: #8b5cf6;
-      --board-bg: #1a251a;
-      --board-border: #2d5a27;
+      --board-bg: #1a2015;
+      --board-border: #3d5a30;
     }
 
     .game-container {
@@ -266,18 +304,6 @@ interface ConfettiPiece {
       color: var(--text-primary);
       text-align: center;
     }
-
-    .sound-btn {
-      width: 40px;
-      height: 40px;
-      font-size: 1.2rem;
-      background: transparent;
-      border: 2px solid var(--text-secondary);
-      border-radius: 50%;
-      cursor: pointer;
-    }
-
-    .sound-btn.muted { opacity: 0.5; }
 
     .btn-primary {
       width: 100%;
@@ -371,18 +397,18 @@ interface ConfettiPiece {
     .board {
       position: relative;
       background:
-        radial-gradient(ellipse at center, #0d1520 0%, var(--board-bg) 100%),
-        linear-gradient(135deg, #0a0f18 0%, #050a0f 100%);
+        radial-gradient(ellipse at center, #0d1508 0%, var(--board-bg) 100%),
+        linear-gradient(135deg, #0a0f05 0%, #050805 100%);
       border: 4px solid var(--board-border);
       border-radius: 8px;
       box-shadow:
-        0 0 50px rgba(26, 61, 21, 0.7),
+        0 0 50px rgba(45, 74, 32, 0.6),
         inset 0 0 100px rgba(0, 0, 0, 0.8);
     }
 
     .snake-part {
       position: absolute;
-      transition: all 0.05s linear;
+      transition: all 0.04s linear;
     }
 
     .snake-head {
@@ -391,264 +417,359 @@ interface ConfettiPiece {
       height: 100%;
     }
 
-    .head-base {
-      position: relative;
+    .head-cover {
       width: 100%;
       height: 100%;
-      display: flex;
-      flex-direction: column;
-      background: radial-gradient(ellipse at 50% 30%, #3a6b2a 0%, #2d5a20 30%, #1a3d15 70%, #0d2610 100%);
-    }
-
-    .head-top, .head-bottom {
-      height: 25%;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-    }
-
-    .head-scale-row {
-      display: flex;
-      gap: 15%;
-      justify-content: center;
-    }
-
-    .scale {
-      background: radial-gradient(ellipse at 50% 50%, rgba(255,255,255,0.15) 0%, transparent 70%);
-      border-radius: 50%;
-    }
-
-    .scale.detail {
-      width: 30%;
-      height: 60%;
-    }
-
-    .scale.center {
-      width: 40%;
-      height: 50%;
-    }
-
-    .eye-socket {
-      position: absolute;
-      width: 24%;
-      height: 28%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
-
-    .eye-socket.left { left: 15%; top: 18%; }
-    .eye-socket.right { right: 15%; top: 18%; }
-
-    .eye-socket.up { top: 12%; }
-    .eye-socket.down { top: auto; bottom: 18%; }
-    .eye-socket.left.dir-left { left: 10%; top: 30%; }
-    .eye-socket.right.dir-right { right: 10%; top: 30%; }
-
-    .eye {
-      width: 100%;
-      height: 100%;
-      background: radial-gradient(circle at 50% 40%, #faf5e0 0%, #e8d9b8 30%, #c9a86c 60%, #8b6914 100%);
-      border-radius: 50%;
+      background: radial-gradient(ellipse at 50% 40%, #90EE50 0%, #32CD32 25%, #228B22 50%, #006400 75%, #004d00 100%);
+      border-radius: 35% 65% 55% 45% / 40% 45% 55% 60%;
       position: relative;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
+      overflow: hidden;
       box-shadow:
-        inset 2px 2px 4px rgba(255,255,255,0.6),
-        inset -2px -2px 4px rgba(0,0,0,0.4),
-        0 0 8px rgba(0,0,0,0.6);
-    }
-
-    .eyelid {
-      position: absolute;
-      width: 100%;
-      background: linear-gradient(to bottom, #2d5a20, #1a3d15);
-      border-radius: 50%;
-    }
-
-    .eyelid.upper {
-      top: 0;
-      height: 50%;
-      transform-origin: top center;
-    }
-
-    .eyelid.lower {
-      bottom: 0;
-      height: 50%;
-      transform-origin: bottom center;
-    }
-
-    .pupil {
-      width: 55%;
-      height: 70%;
-      background: radial-gradient(circle at 35% 35%, #0a0a0a 0%, #000 50%, #1a1a1a 80%, #2a2a2a 100%);
-      border-radius: 50%;
-      z-index: 1;
-      box-shadow: inset 1px 1px 2px rgba(255,255,255,0.2);
-    }
-
-    .pupil.up { transform: translateY(-15%); }
-    .pupil.down { transform: translateY(15%); }
-    .pupil.left { transform: translateX(-15%); }
-    .pupil.right { transform: translateX(15%); }
-
-    .head-center {
-      flex: 1;
-      display: flex;
-      justify-content: center;
-      align-items: center;
+        inset 0 0 20px rgba(144,238,144,0.3),
+        0 0 15px rgba(50,205,50,0.5);
     }
 
     .scale-row {
+      position: absolute;
+      left: 10%;
+      right: 10%;
       display: flex;
-      gap: 20%;
+      justify-content: space-around;
     }
 
-    .snout-area {
-      height: 35%;
+    .scale-row.top { top: 5%; }
+    .scale-row.bottom { bottom: 25%; }
+
+    .scale-plate {
+      background: radial-gradient(ellipse at 50% 50%, rgba(100,150,80,0.5) 0%, rgba(60,100,40,0.8) 60%, transparent 100%);
+      border-radius: 40% 60% 50% 50% / 50% 45% 55% 50%;
+    }
+
+    .scale-row.top .scale-plate {
+      width: 15%;
+      height: 12%;
+    }
+
+    .scale-row.bottom .scale-plate {
+      width: 12%;
+      height: 8%;
+    }
+
+    .heat-pits {
+      position: absolute;
+      top: 25%;
+      width: 8%;
+      height: 15%;
+    }
+
+    .heat-pits.left-pit { left: 15%; }
+    .heat-pits.right-pit { right: 15%; }
+
+    .pit-hole {
+      width: 100%;
+      height: 100%;
+      background: radial-gradient(ellipse at center, #0a0a0a 0%, #1a1a1a 50%, #0d0d0d 100%);
+      border-radius: 50%;
+      box-shadow: inset 0 0 5px rgba(0,0,0,0.9);
+    }
+
+    .pit-glow {
+      position: absolute;
+      top: 20%;
+      left: 20%;
+      width: 60%;
+      height: 60%;
+      background: radial-gradient(circle, rgba(255,50,0,0.3) 0%, transparent 70%);
+      border-radius: 50%;
+    }
+
+    .eye-zone {
+      position: absolute;
+      top: 15%;
+      left: 15%;
+      right: 15%;
+      height: 30%;
       display: flex;
-      flex-direction: column;
+      justify-content: space-between;
       align-items: center;
-      justify-content: flex-end;
-      position: relative;
     }
 
-    .snout {
-      width: 35%;
-      height: 40%;
-      background: linear-gradient(180deg, #2d5a20 0%, #1a3d15 100%);
-      border-radius: 50% 50% 45% 45%;
+    .eye-socket {
+      width: 28%;
+      height: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .eye-rim {
+      width: 100%;
+      height: 85%;
+      background: radial-gradient(ellipse at 50% 50%, #FFD700 0%, #FFA500 50%, #FF8C00 100%);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow:
+        inset 2px 2px 4px rgba(255,215,0,0.6),
+        inset -2px -2px 4px rgba(200,100,0,0.6),
+        0 0 8px rgba(255,165,0,0.8);
+    }
+
+    .eye-outer {
+      width: 80%;
+      height: 80%;
+      background: radial-gradient(circle at 50% 50%, #FFFF00 0%, #FFD700 30%, #FFA500 60%, #FF8C00 100%);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow:
+        inset 1px 1px 3px rgba(255,255,200,0.7),
+        inset -1px -1px 2px rgba(200,100,0,0.4);
+    }
+
+    .pupil-slit {
+      width: 25%;
+      height: 70%;
+      background: radial-gradient(ellipse at 50% 50%, #0a0a0a 0%, #000 70%, #1a1a1a 100%);
+      border-radius: 50%;
       position: relative;
+      box-shadow: inset 1px 1px 2px rgba(255,255,255,0.2);
+    }
+
+    .pupil-slit.up { transform: translateY(-20%); }
+    .pupil-slit.down { transform: translateY(20%); }
+    .pupil-slit.left { transform: translateX(-20%); }
+    .pupil-slit.right { transform: translateX(20%); }
+
+    .pupil-highlight {
+      position: absolute;
+      top: 15%;
+      left: 20%;
+      width: 25%;
+      height: 25%;
+      background: rgba(255,255,255,0.5);
+      border-radius: 50%;
+    }
+
+    .inter-orbital {
+      flex: 1;
       display: flex;
       justify-content: center;
-      align-items: center;
     }
 
-    .nostril {
-      position: absolute;
-      width: 4px;
-      height: 3px;
-      background: #0d2610;
-      border-radius: 50%;
-      top: 40%;
+    .center-brow {
+      width: 20%;
+      height: 40%;
     }
 
-    .nostril.left { left: 20%; }
-    .nostril.right { right: 20%; }
-
-    .mouth {
+    .snout-region {
       position: absolute;
-      width: 45%;
-      height: 0%;
-      background: linear-gradient(180deg, #1a0505 0%, #4a0f0f 100%);
-      top: 75%;
-      border-radius: 0 0 50% 50%;
-      overflow: hidden;
-      transition: height 0.05s ease-out;
+      bottom: 5%;
+      left: 15%;
+      right: 15%;
+      height: 40%;
+    }
+
+    .nasal-scales {
       display: flex;
-      flex-direction: column;
-      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 2%;
     }
 
-    .mouth.open {
-      height: 60%;
-      box-shadow: 0 0 10px rgba(74, 20, 20, 0.8);
+    .nasal {
+      width: 22%;
+      height: 35%;
+    }
+
+    .nostril-hole {
+      position: absolute;
+      top: 30%;
+      left: 25%;
+      width: 50%;
+      height: 40%;
+      background: radial-gradient(ellipse at center, #050505 0%, #0a0a0a 100%);
+      border-radius: 40% 60% 50% 50%;
+    }
+
+    .labial-row {
+      display: flex;
+      justify-content: space-between;
+      margin: 2% 0;
+    }
+
+.labial-scale {
+      width: 15%;
+      height: 3px;
+      background: linear-gradient(90deg, transparent 0%, #5a8a40 30%, #6a9a50 50%, #5a8a40 70%, transparent 100%);
+      border-radius: 2px;
     }
 
     .upper-jaw {
-      width: 100%;
-      height: 40%;
-      background: linear-gradient(180deg, #2d4a20 0%, #1a3d15 100%);
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 50%;
+      background: linear-gradient(180deg, #4a7a35 0%, #3d6a28 100%);
       border-radius: 0 0 30% 30%;
     }
 
     .lower-jaw {
-      width: 100%;
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
       height: 60%;
-      background: linear-gradient(180deg, #1a3d15 0%, #0d2610 100%);
+      background: linear-gradient(180deg, #3d6a28 0%, #2d5a1a 100%);
+      border-radius: 30% 30% 0 0;
+      transform-origin: top center;
+      transition: transform 0.05s ease-out;
+    }
+
+    .mouth-region {
+      position: relative;
+      height: 35%;
+      overflow: hidden;
+    }
+
+    .upper-jaw {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 50%;
+      background: linear-gradient(180deg, #3d4a28 0%, #2d3a1d 100%);
+      border-radius: 0 0 30% 30%;
+    }
+
+    .mouth-interior {
+      position: absolute;
+      top: 40%;
+      left: 10%;
+      right: 10%;
+      height: 20%;
+      background: linear-gradient(180deg, #1a0505 0%, #4a0f0f 50%, #2a0a0a 100%);
+      display: flex;
+      justify-content: center;
+      gap: 20%;
+    }
+
+    .fang-pair {
+      display: flex;
+      align-items: flex-end;
+    }
+
+    .fang {
+      width: 3px;
+      height: 12px;
+      background: linear-gradient(180deg, #faf5e0 0%, #e8d9b8 40%, #c9a86c 70%, #8b6914 100%);
+      border-radius: 2px 2px 50% 50%;
+      box-shadow: 0 0 2px rgba(0,0,0,0.3);
+    }
+
+    .fang-pair.left-fangs .fang { transform: rotate(-15deg); }
+    .fang-pair.right-fangs .fang { transform: rotate(15deg); }
+
+    .lower-jaw {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      height: 60%;
+      background: linear-gradient(180deg, #2d3a1d 0%, #1a2510 100%);
       border-radius: 30% 30% 0 0;
       transform-origin: top center;
       transition: transform 0.05s ease-out;
     }
 
     .lower-jaw.extended {
-      transform: scaleY(1.2) translateY(10%);
+      transform: scaleY(1.3) translateY(20%);
     }
 
-    .fangs {
+    .tongue-region {
       position: absolute;
-      top: 5%;
-      width: 80%;
-      display: flex;
-      justify-content: space-between;
+      bottom: -5px;
+      left: 50%;
+      transform: translateX(-50%);
     }
-
-    .fang {
-      width: 4px;
-      height: 15px;
-      background: linear-gradient(180deg, #faf5e0 0%, #e8d9b8 50%, #c9a86c 100%);
-      border-radius: 2px 2px 50% 50%;
-      box-shadow: 0 0 3px rgba(0,0,0,0.3);
-    }
-
-    .fang.left { transform: rotate(-10deg); }
-    .fang.right { transform: rotate(10deg); }
 
     .tongue {
-      position: absolute;
-      top: 50%;
       width: 4px;
       height: 0;
-      background: linear-gradient(180deg, #8b1538 0%, #c41e3a 50%, #e8264b 100%);
+      background: linear-gradient(180deg, #1a0a0a 0%, #2a1515 50%, #1a0a0a 100%);
       border-radius: 2px;
+      display: flex;
+      justify-content: center;
       transform-origin: top center;
+      transition: height 0.1s ease-out;
     }
 
-    .tongue.visible {
-      height: 25px;
-      animation: tongue-snap 0.15s ease-out forwards;
+    .tongue.extended {
+      height: 20px;
     }
 
-    .tongue.visible::after, .tongue.visible::before {
-      content: '';
+    .tongue-fork {
       position: absolute;
-      width: 3px;
-      height: 10px;
-      background: linear-gradient(180deg, #c41e3a 0%, #e8264b 100%);
-      border-radius: 1px;
+      width: 2px;
+      height: 8px;
+      background: linear-gradient(180deg, #2a1515 0%, #1a0a0a 100%);
       top: 100%;
     }
 
-    .tongue.visible::after { left: -2px; transform: rotate(-20deg); }
-    .tongue.visible::before { left: 3px; transform: rotate(20deg); }
+    .tongue-fork.left-tine {
+      left: -2px;
+      transform: rotate(-25deg);
+    }
 
-    @keyframes tongue-snap {
-      0% { transform: scaleY(0); }
-      50% { transform: scaleY(1.2); }
-      100% { transform: scaleY(1); }
+    .tongue-fork.right-tine {
+      right: -2px;
+      transform: rotate(25deg);
     }
 
     .body-segment {
-      position: absolute;
       width: 100%;
       height: 100%;
-      background: radial-gradient(ellipse at 50% 50%, #2d5a20 0%, #1a3d15 50%, #0d2610 100%);
-      border-radius: 45% 55% 50% 50% / 50% 45% 55% 50%;
+      background: radial-gradient(ellipse at 50% 50%, #90EE90 0%, #32CD32 25%, #228B22 50%, #006400 70%, #004d00 100%);
+      border-radius: 40% 60% 50% 50% / 50% 45% 55% 50%;
       box-shadow:
-        inset 2px 2px 4px rgba(100,160,80,0.3),
-        inset -2px -2px 4px rgba(0,0,0,0.4),
-        0 0 10px rgba(26,61,21,0.5);
+        inset 3px 3px 8px rgba(144,238,144,0.5),
+        inset -3px -3px 8px rgba(0,100,0,0.6),
+        0 0 12px rgba(50,205,50,0.7);
+      position: relative;
+      overflow: hidden;
     }
 
-    .scale-pattern {
+    .segment-pattern {
       width: 100%;
       height: 100%;
       display: flex;
       flex-direction: column;
-      justify-content: space-around;
-      padding: 15% 20%;
+      justify-content: space-between;
+      padding: 10% 15%;
+    }
+
+    .dorsal-scales {
+      display: flex;
+      justify-content: center;
+      gap: 5%;
+    }
+
+    .dorsal-plate {
+      width: 12%;
+      height: 20%;
+      background: radial-gradient(ellipse at 50% 50%, rgba(70,90,50,0.6) 0%, transparent 70%);
+      border-radius: 50%;
+    }
+
+    .lateral-line {
+      position: absolute;
+      left: 20%;
+      right: 20%;
+      top: 45%;
+      height: 2px;
+      background: linear-gradient(90deg, transparent 0%, rgba(20,30,10,0.6) 30%, rgba(20,30,10,0.6) 70%, transparent 100%);
     }
 
     .food {
@@ -659,23 +780,12 @@ interface ConfettiPiece {
     .food::before {
       content: '';
       position: absolute;
-      width: 40%;
-      height: 35%;
-      background: radial-gradient(ellipse at center, rgba(255,255,255,0.7) 0%, transparent 70%);
+      width: 30%;
+      height: 25%;
+      background: radial-gradient(ellipse at center, rgba(180,140,80,0.6) 0%, transparent 70%);
       border-radius: 50%;
-      top: 10%;
-      left: 12%;
-    }
-
-    .food::after {
-      content: '';
-      position: absolute;
-      width: 25%;
-      height: 20%;
-      background: rgba(100, 20, 20, 0.9);
-      border-radius: 50%;
-      bottom: 20%;
-      right: 15%;
+      top: 15%;
+      left: 20%;
     }
 
     .overlay {
@@ -729,7 +839,6 @@ export class GameBoardComponent implements OnInit {
   readonly themeService = inject(ThemeService);
   readonly confetti = signal<ConfettiPiece[]>([]);
   readonly showSettings = signal(false);
-  soundEnabled = true;
 
   worldRecordInput = 500;
   speedInput = 150;
@@ -740,10 +849,6 @@ export class GameBoardComponent implements OnInit {
     const config = this.snakeService.getConfig();
     this.worldRecordInput = config.worldRecord;
     this.speedInput = config.initialSpeed;
-  }
-
-  toggleSound(): void {
-    this.soundEnabled = !this.soundEnabled;
   }
 
   applySettings(): void {
@@ -778,9 +883,8 @@ export class GameBoardComponent implements OnInit {
     setTimeout(() => this.confetti.set([]), 4000);
   }
 
-  getScalePattern(index: number): string[] {
-    const patterns = ['top-left', 'top-right', 'bottom-left', 'bottom-right'];
-    return [patterns[index % 4], patterns[(index + 1) % 4]];
+  getDorsalScales(index: number): string[] {
+    return ['d1', 'd2', 'd3', 'd4', 'd5'].slice(0, 3 + (index % 3));
   }
 
   getDirectionClass(): string {
