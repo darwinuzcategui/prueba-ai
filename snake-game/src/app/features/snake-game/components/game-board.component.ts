@@ -2,6 +2,7 @@ import { Component, inject, HostListener, signal, effect, OnInit } from '@angula
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { SnakeService } from '../../../core/services/snake.service';
+import { ThemeService } from '../../../core/services/theme.service';
 import { Direction } from '../models/snake.model';
 
 interface ConfettiPiece {
@@ -53,6 +54,9 @@ interface ConfettiPiece {
         <div class="world-record" [class.achieved]="snakeService.score() >= snakeService.worldRecord()">
           🌍 Record: {{ snakeService.worldRecord() }}
         </div>
+        <button class="theme-btn" (click)="themeService.toggle()" [title]="themeService.isDark() ? 'Modo Claro' : 'Modo Oscuro'">
+          {{ themeService.isDark() ? '☀️' : '🌙' }}
+        </button>
         <button class="settings-btn" (click)="showSettings.set(true)">⚙️</button>
       </div>
 
@@ -140,10 +144,35 @@ interface ConfettiPiece {
         <span>ESPACIO: Iniciar/Pausar</span>
         <span>Flechas o WASD: Mover</span>
         <span>⚙️: Configuración</span>
+        <span>☀️/🌙: Tema</span>
       </div>
     </div>
   `,
   styles: [`
+    :host {
+      --bg-primary: #0f0f1a;
+      --bg-secondary: #1a1a2e;
+      --text-primary: #ffffff;
+      --text-secondary: #9ca3af;
+      --accent-green: #4ade80;
+      --accent-yellow: #fbbf24;
+      --accent-purple: #a855f7;
+      --board-bg: #0f1922;
+      --board-border: #2d5a27;
+    }
+
+    :host-context([data-theme="light"]) {
+      --bg-primary: #f0f0f5;
+      --bg-secondary: #ffffff;
+      --text-primary: #1a1a2e;
+      --text-secondary: #6b7280;
+      --accent-green: #22c55e;
+      --accent-yellow: #f59e0b;
+      --accent-purple: #8b5cf6;
+      --board-bg: #e8f5e9;
+      --board-border: #4ade80;
+    }
+
     .game-container {
       display: flex;
       flex-direction: column;
@@ -151,6 +180,9 @@ interface ConfettiPiece {
       gap: 1rem;
       padding: 2rem;
       position: relative;
+      background: linear-gradient(135deg, var(--bg-primary) 0%, var(--bg-secondary) 100%);
+      min-height: 100vh;
+      color: var(--text-primary);
     }
 
     .settings-panel {
@@ -158,19 +190,20 @@ interface ConfettiPiece {
       top: 50%;
       left: 50%;
       transform: translate(-50%, -50%);
-      background: linear-gradient(145deg, #1a1a2e 0%, #16213e 100%);
-      border: 2px solid #4ade80;
+      background: var(--bg-secondary);
+      border: 2px solid var(--accent-green);
       border-radius: 12px;
       padding: 2rem;
       z-index: 100;
       box-shadow: 0 0 30px rgba(74, 222, 128, 0.3);
       min-width: 300px;
+      color: var(--text-primary);
     }
 
     .settings-panel h2 {
       text-align: center;
       margin-bottom: 1.5rem;
-      color: #4ade80;
+      color: var(--accent-green);
     }
 
     .setting-item {
@@ -182,24 +215,24 @@ interface ConfettiPiece {
     }
 
     .setting-item label {
-      color: #ccc;
+      color: var(--text-secondary);
       font-size: 0.9rem;
     }
 
     .setting-item input {
       width: 120px;
       padding: 0.5rem;
-      border: 1px solid #4ade80;
+      border: 1px solid var(--accent-green);
       border-radius: 4px;
-      background: #0f0f1a;
-      color: white;
+      background: var(--bg-primary);
+      color: var(--text-primary);
       text-align: center;
       font-size: 1rem;
     }
 
     .setting-item input:focus {
       outline: none;
-      border-color: #22c55e;
+      border-color: var(--accent-green);
       box-shadow: 0 0 10px rgba(74, 222, 128, 0.3);
     }
 
@@ -207,10 +240,10 @@ interface ConfettiPiece {
       width: 100%;
       padding: 0.75rem;
       margin-top: 0.5rem;
-      background: #4ade80;
+      background: var(--accent-green);
       border: none;
       border-radius: 6px;
-      color: #0f0f1a;
+      color: var(--bg-primary);
       font-weight: bold;
       cursor: pointer;
       transition: transform 0.1s;
@@ -223,16 +256,16 @@ interface ConfettiPiece {
       padding: 0.5rem;
       margin-top: 0.5rem;
       background: transparent;
-      border: 1px solid #6b7280;
+      border: 1px solid var(--text-secondary);
       border-radius: 6px;
-      color: #9ca3af;
+      color: var(--text-secondary);
       cursor: pointer;
       transition: all 0.2s;
     }
 
     .btn-secondary:hover {
-      border-color: #9ca3af;
-      color: #ccc;
+      border-color: var(--text-primary);
+      color: var(--text-primary);
     }
 
     .game-header {
@@ -246,29 +279,32 @@ interface ConfettiPiece {
       gap: 1rem;
     }
 
-    .score { color: #4ade80; }
-    .high-score { color: #fbbf24; }
-    .world-record { color: #a855f7; }
+    .score { color: var(--accent-green); }
+    .high-score { color: var(--accent-yellow); }
+    .world-record { color: var(--accent-purple); }
     .world-record.achieved {
       color: #f472b6;
       text-shadow: 0 0 10px #f472b6;
       animation: pulse 0.5s ease-in-out infinite alternate;
     }
 
-    .settings-btn {
+    .theme-btn, .settings-btn {
       background: transparent;
-      border: 2px solid #6b7280;
+      border: 2px solid var(--text-secondary);
       border-radius: 50%;
       width: 40px;
       height: 40px;
       font-size: 1.2rem;
       cursor: pointer;
       transition: all 0.2s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
     }
 
-    .settings-btn:hover {
-      border-color: #4ade80;
-      color: #4ade80;
+    .theme-btn:hover, .settings-btn:hover {
+      border-color: var(--accent-green);
+      color: var(--accent-green);
     }
 
     .confetti-container {
@@ -306,7 +342,7 @@ interface ConfettiPiece {
       transform: translate(-50%, -50%);
       font-size: 2.5rem;
       font-weight: bold;
-      color: #fbbf24;
+      color: var(--accent-yellow);
       text-shadow: 0 0 30px rgba(251, 191, 36, 0.8), 0 0 60px rgba(251, 191, 36, 0.4);
       animation: pulse 0.5s ease-in-out infinite alternate;
       z-index: 1001;
@@ -320,9 +356,8 @@ interface ConfettiPiece {
     .board {
       position: relative;
       background:
-        radial-gradient(ellipse at center, #1a2a3a 0%, #0f1922 100%),
-        linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
-      border: 4px solid #2d5a27;
+        radial-gradient(ellipse at center, #1a2a3a 0%, var(--board-bg) 100%);
+      border: 4px solid var(--board-border);
       border-radius: 8px;
       box-shadow:
         0 0 30px rgba(45, 90, 39, 0.5),
@@ -473,14 +508,15 @@ interface ConfettiPiece {
 
     .overlay h2 { margin: 0 0 1rem; font-size: 2rem; }
     .overlay p { margin: 0.5rem 0; }
-    .overlay .new-record { color: #fbbf24; font-size: 1.5rem; font-weight: bold; }
+    .overlay .new-record { color: var(--accent-yellow); font-size: 1.5rem; font-weight: bold; }
     .overlay button {
       margin-top: 1rem;
       padding: 0.75rem 2rem;
       font-size: 1rem;
-      background: #4ade80;
+      background: var(--accent-green);
       border: none;
       border-radius: 4px;
+      color: var(--bg-primary);
       cursor: pointer;
       transition: transform 0.1s;
     }
@@ -489,24 +525,25 @@ interface ConfettiPiece {
     .controls-info, .world-record-info {
       margin-top: 1rem;
       font-size: 0.875rem;
-      color: #9ca3af;
+      color: var(--text-secondary);
     }
 
     .world-record-info {
-      color: #a855f7;
+      color: var(--accent-purple);
       font-weight: bold;
     }
 
     .instructions {
       display: flex;
       gap: 2rem;
-      color: #6b7280;
+      color: var(--text-secondary);
       font-size: 0.875rem;
     }
   `]
 })
 export class GameBoardComponent implements OnInit {
   readonly snakeService = inject(SnakeService);
+  readonly themeService = inject(ThemeService);
   readonly confetti = signal<ConfettiPiece[]>([]);
   readonly showSettings = signal(false);
 

@@ -4,12 +4,37 @@
   padding: 0;
 }
 
+:root {
+  --bg-primary: #0f0f1a;
+  --bg-secondary: #1a1a2e;
+  --text-primary: #ffffff;
+  --text-secondary: #9ca3af;
+  --accent-green: #4ade80;
+  --accent-yellow: #fbbf24;
+  --accent-purple: #a855f7;
+  --board-bg: #0f1922;
+  --board-border: #2d5a27;
+}
+
+[data-theme="light"] {
+  --bg-primary: #f0f0f5;
+  --bg-secondary: #ffffff;
+  --text-primary: #1a1a2e;
+  --text-secondary: #6b7280;
+  --accent-green: #22c55e;
+  --accent-yellow: #f59e0b;
+  --accent-purple: #8b5cf6;
+  --board-bg: #e8f5e9;
+  --board-border: #4ade80;
+}
+
 body {
   font-family: 'Segoe UI', system-ui, sans-serif;
-  background: linear-gradient(135deg, #0f0f1a 0%, #1a1a2e 100%);
+  background: linear-gradient(135deg, var(--bg-primary) 0%, var(--bg-secondary) 100%);
   min-height: 100vh;
   display: flex;
   justify-content: center;
   align-items: center;
-  color: white;
+  color: var(--text-primary);
+  transition: background 0.3s ease, color 0.3s ease;
 }
