@@ -1,6 +1,8 @@
 import { Injectable, signal, computed } from '@angular/core';
 import { Position, Direction, GameState, GameConfig, DEFAULT_CONFIG } from '../../features/snake-game/models/snake.model';
 
+export const WORLD_RECORD = 500;
+
 @Injectable({ providedIn: 'root' })
 export class SnakeService {
   private readonly config: GameConfig = DEFAULT_CONFIG;
@@ -14,6 +16,8 @@ export class SnakeService {
   readonly gameState = signal<GameState>('IDLE');
   readonly score = signal<number>(0);
   readonly highScore = signal<number>(0);
+  readonly worldRecord = signal<number>(WORLD_RECORD);
+  readonly showConfetti = signal<boolean>(false);
 
   readonly boardSize = computed(() => ({
     width: this.config.boardWidth * this.config.cellSize,
@@ -31,6 +35,7 @@ export class SnakeService {
     this.direction.set('RIGHT');
     this.nextDirection.set('RIGHT');
     this.score.set(0);
+    this.showConfetti.set(false);
     this.spawnFood();
     this.gameState.set('PLAYING');
     this.startGameLoop();
@@ -98,6 +103,7 @@ export class SnakeService {
 
     if (head.x === this.food().x && head.y === this.food().y) {
       this.score.update(s => s + 10);
+      this.checkWorldRecord();
       this.spawnFood();
     } else {
       newSnake.pop();
@@ -113,6 +119,14 @@ export class SnakeService {
       return true;
     }
     return snake.some((seg, i) => i > 0 && seg.x === head.x && seg.y === head.y);
+  }
+
+  private checkWorldRecord(): void {
+    if (this.score() >= this.worldRecord() && this.score() > this.highScore()) {
+      this.worldRecord.set(this.score());
+      this.showConfetti.set(true);
+      setTimeout(() => this.showConfetti.set(false), 4000);
+    }
   }
 
   private spawnFood(): void {
@@ -134,12 +148,34 @@ export class SnakeService {
     }
   }
 
-  getCellStyle(pos: Position): Record<string, string> {
+  getCellStyle(pos: Position, isHead: boolean = false): Record<string, string> {
     return {
       left: `${pos.x * this.config.cellSize}px`,
       top: `${pos.y * this.config.cellSize}px`,
       width: `${this.config.cellSize}px`,
       height: `${this.config.cellSize}px`,
+      transform: isHead ? 'scale(1.1)' : 'scale(1)',
+      zIndex: isHead ? '2' : '1',
+    };
+  }
+
+  getSnakeSegmentStyle(segment: Position, index: number, total: number): Record<string, string> {
+    const baseStyle = this.getCellStyle(segment, index === 0);
+    const progress = index / total;
+    const scale = 1.1 - (progress * 0.2);
+    const opacity = 1 - (progress * 0.3);
+
+    return {
+      ...baseStyle,
+      transform: `scale(${scale})`,
+      opacity: String(opacity),
+      background: index === 0
+        ? 'linear-gradient(135deg, #22c55e 0%, #16a34a 100%)'
+        : `linear-gradient(135deg, hsl(${120 - progress * 20}, 85%, ${50 - progress * 10}%) 0%, hsl(${120 - progress * 20}, 85%, ${40 - progress * 10}%) 100%)`,
+      boxShadow: index === 0
+        ? '0 0 15px rgba(34, 197, 94, 0.8), inset 0 2px 4px rgba(255,255,255,0.3), inset 0 -2px 4px rgba(0,0,0,0.3)'
+        : '0 0 8px rgba(74, 222, 128, 0.4), inset 0 1px 2px rgba(255,255,255,0.2), inset 0 -1px 2px rgba(0,0,0,0.2)',
+      borderRadius: index === 0 ? '50% 50% 40% 40%' : '40%',
     };
   }
 }
