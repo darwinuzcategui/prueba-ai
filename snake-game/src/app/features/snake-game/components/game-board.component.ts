@@ -25,23 +25,17 @@ interface ConfettiPiece {
           <h2>⚙️ Configuración</h2>
           <div class="setting-item">
             <label>Record Mundial:</label>
-            <input
-              type="number"
-              [(ngModel)]="worldRecordInput"
-              min="100"
-              max="10000"
-              step="100"
-            />
+            <input type="number" [(ngModel)]="worldRecordInput" min="100" max="10000" step="100" />
           </div>
           <div class="setting-item">
             <label>Velocidad (ms):</label>
-            <input
-              type="number"
-              [(ngModel)]="speedInput"
-              min="50"
-              max="500"
-              step="10"
-            />
+            <input type="number" [(ngModel)]="speedInput" min="50" max="500" step="10" />
+          </div>
+          <div class="setting-item">
+            <label>Sonido:</label>
+            <button class="sound-btn" (click)="toggleSound()" [class.muted]="!soundEnabled">
+              {{ soundEnabled ? '🔊' : '🔇' }}
+            </button>
           </div>
           <button class="btn-primary" (click)="applySettings()">Aplicar</button>
           <button class="btn-secondary" (click)="showSettings.set(false)">Cerrar</button>
@@ -54,7 +48,7 @@ interface ConfettiPiece {
         <div class="world-record" [class.achieved]="snakeService.score() >= snakeService.worldRecord()">
           🌍 Record: {{ snakeService.worldRecord() }}
         </div>
-        <button class="theme-btn" (click)="themeService.toggle()" [title]="themeService.isDark() ? 'Modo Claro' : 'Modo Oscuro'">
+        <button class="theme-btn" (click)="themeService.toggle()">
           {{ themeService.isDark() ? '☀️' : '🌙' }}
         </button>
         <button class="settings-btn" (click)="showSettings.set(true)">⚙️</button>
@@ -84,35 +78,88 @@ interface ConfettiPiece {
       >
         @for (segment of snakeService.snake(); track $index) {
           <div
-            class="snake-segment"
-            [style]="snakeService.getSnakeSegmentStyle(segment, $index, snakeService.snake().length)"
+            class="snake-part"
+            [style]="snakeService.getSnakePartStyle(segment, $index, snakeService.snake().length)"
           >
-            @if ($index === 0) {
-              <div class="snake-head-details">
-                <div class="eyes" [class]="getEyesClass()">
-                  <div class="eye left-eye">
-                    <div class="pupil"></div>
+            @if (segment.isHead) {
+              <div class="snake-head" [class.eating]="snakeService.mouthOpen() > 0">
+                <div class="head-base">
+                  <div class="head-top">
+                    <div class="head-scale-row">
+                      <div class="scale detail"></div>
+                      <div class="scale detail"></div>
+                      <div class="scale detail"></div>
+                    </div>
                   </div>
-                  <div class="eye right-eye">
-                    <div class="pupil"></div>
+
+                  <div class="eye-socket left" [class]="getDirectionClass()">
+                    <div class="eye">
+                      <div class="eyelid upper"></div>
+                      <div class="pupil" [class]="getDirectionClass()"></div>
+                      <div class="eyelid lower"></div>
+                    </div>
+                  </div>
+
+                  <div class="eye-socket right" [class]="getDirectionClass()">
+                    <div class="eye">
+                      <div class="eyelid upper"></div>
+                      <div class="pupil" [class]="getDirectionClass()"></div>
+                      <div class="eyelid lower"></div>
+                    </div>
+                  </div>
+
+                  <div class="head-center">
+                    <div class="scale-row">
+                      <div class="scale center"></div>
+                      <div class="scale center"></div>
+                    </div>
+                  </div>
+
+                  <div class="snout-area" [class.open]="snakeService.mouthOpen() > 0">
+                    <div class="snout">
+                      <div class="nostril left"></div>
+                      <div class="nostril right"></div>
+                    </div>
+                    <div class="mouth" [class.open]="snakeService.mouthOpen() > 0">
+                      <div class="upper-jaw"></div>
+                      <div class="lower-jaw" [class.extended]="snakeService.mouthOpen() > 0.5"></div>
+                      @if (snakeService.mouthOpen() > 0.3) {
+                        <div class="fangs">
+                          <div class="fang left"></div>
+                          <div class="fang right"></div>
+                        </div>
+                        <div class="tongue" [class.visible]="snakeService.mouthOpen() > 0.5"></div>
+                      }
+                    </div>
+                  </div>
+
+                  <div class="head-bottom">
+                    <div class="head-scale-row">
+                      <div class="scale detail"></div>
+                      <div class="scale detail"></div>
+                      <div class="scale detail"></div>
+                    </div>
                   </div>
                 </div>
-                <div class="tongue" [class]="getTongueClass()"></div>
-                <div class="scales"></div>
+              </div>
+            } @else {
+              <div class="body-segment" [class.heading]="segment.scale > 0.9">
+                <div class="scale-pattern">
+                  @for (s of getScalePattern($index); track $index) {
+                    <div class="scale" [class]="s"></div>
+                  }
+                </div>
               </div>
             }
           </div>
         }
-        <div
-          class="food"
-          [style]="snakeService.getFoodStyle(snakeService.food())"
-        ></div>
+        <div class="food" [style]="snakeService.getFoodStyle(snakeService.food())"></div>
       </div>
 
       @if (snakeService.gameState() === 'IDLE') {
         <div class="overlay">
           <h2>🐍 Snake Game</h2>
-          <p>Presiona ESPACIO o clic para comenzar</p>
+          <p>Presiona ESPACIO para comenzar</p>
           <div class="controls-info">
             <span>↑↓←→ o WASD para mover</span>
           </div>
@@ -143,8 +190,7 @@ interface ConfettiPiece {
       <div class="instructions">
         <span>ESPACIO: Iniciar/Pausar</span>
         <span>Flechas o WASD: Mover</span>
-        <span>⚙️: Configuración</span>
-        <span>☀️/🌙: Tema</span>
+        <span>🔊: Sonido {{ soundEnabled ? 'ON' : 'OFF' }}</span>
       </div>
     </div>
   `,
@@ -157,20 +203,20 @@ interface ConfettiPiece {
       --accent-green: #4ade80;
       --accent-yellow: #fbbf24;
       --accent-purple: #a855f7;
-      --board-bg: #0f1922;
-      --board-border: #2d5a27;
+      --board-bg: #050a0f;
+      --board-border: #1a3d15;
     }
 
     :host-context([data-theme="light"]) {
-      --bg-primary: #f0f0f5;
-      --bg-secondary: #ffffff;
+      --bg-primary: #e0e0e8;
+      --bg-secondary: #f5f5f5;
       --text-primary: #1a1a2e;
       --text-secondary: #6b7280;
       --accent-green: #22c55e;
       --accent-yellow: #f59e0b;
       --accent-purple: #8b5cf6;
-      --board-bg: #e8f5e9;
-      --board-border: #4ade80;
+      --board-bg: #1a251a;
+      --board-border: #2d5a27;
     }
 
     .game-container {
@@ -197,14 +243,9 @@ interface ConfettiPiece {
       z-index: 100;
       box-shadow: 0 0 30px rgba(74, 222, 128, 0.3);
       min-width: 300px;
-      color: var(--text-primary);
     }
 
-    .settings-panel h2 {
-      text-align: center;
-      margin-bottom: 1.5rem;
-      color: var(--accent-green);
-    }
+    .settings-panel h2 { text-align: center; margin-bottom: 1.5rem; color: var(--accent-green); }
 
     .setting-item {
       display: flex;
@@ -214,10 +255,7 @@ interface ConfettiPiece {
       gap: 1rem;
     }
 
-    .setting-item label {
-      color: var(--text-secondary);
-      font-size: 0.9rem;
-    }
+    .setting-item label { color: var(--text-secondary); font-size: 0.9rem; }
 
     .setting-item input {
       width: 120px;
@@ -227,14 +265,19 @@ interface ConfettiPiece {
       background: var(--bg-primary);
       color: var(--text-primary);
       text-align: center;
-      font-size: 1rem;
     }
 
-    .setting-item input:focus {
-      outline: none;
-      border-color: var(--accent-green);
-      box-shadow: 0 0 10px rgba(74, 222, 128, 0.3);
+    .sound-btn {
+      width: 40px;
+      height: 40px;
+      font-size: 1.2rem;
+      background: transparent;
+      border: 2px solid var(--text-secondary);
+      border-radius: 50%;
+      cursor: pointer;
     }
+
+    .sound-btn.muted { opacity: 0.5; }
 
     .btn-primary {
       width: 100%;
@@ -246,10 +289,7 @@ interface ConfettiPiece {
       color: var(--bg-primary);
       font-weight: bold;
       cursor: pointer;
-      transition: transform 0.1s;
     }
-
-    .btn-primary:hover { transform: scale(1.02); }
 
     .btn-secondary {
       width: 100%;
@@ -260,12 +300,6 @@ interface ConfettiPiece {
       border-radius: 6px;
       color: var(--text-secondary);
       cursor: pointer;
-      transition: all 0.2s;
-    }
-
-    .btn-secondary:hover {
-      border-color: var(--text-primary);
-      color: var(--text-primary);
     }
 
     .game-header {
@@ -282,11 +316,7 @@ interface ConfettiPiece {
     .score { color: var(--accent-green); }
     .high-score { color: var(--accent-yellow); }
     .world-record { color: var(--accent-purple); }
-    .world-record.achieved {
-      color: #f472b6;
-      text-shadow: 0 0 10px #f472b6;
-      animation: pulse 0.5s ease-in-out infinite alternate;
-    }
+    .world-record.achieved { color: #f472b6; text-shadow: 0 0 10px #f472b6; animation: pulse 0.5s infinite alternate; }
 
     .theme-btn, .settings-btn {
       background: transparent;
@@ -296,15 +326,6 @@ interface ConfettiPiece {
       height: 40px;
       font-size: 1.2rem;
       cursor: pointer;
-      transition: all 0.2s;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
-
-    .theme-btn:hover, .settings-btn:hover {
-      border-color: var(--accent-green);
-      color: var(--accent-green);
     }
 
     .confetti-container {
@@ -325,14 +346,8 @@ interface ConfettiPiece {
     }
 
     @keyframes confetti-fall {
-      0% {
-        transform: translateY(-100vh) rotate(0deg);
-        opacity: 1;
-      }
-      100% {
-        transform: translateY(100vh) rotate(720deg);
-        opacity: 0;
-      }
+      0% { transform: translateY(-100vh) rotate(0deg); opacity: 1; }
+      100% { transform: translateY(100vh) rotate(720deg); opacity: 0; }
     }
 
     .confetti-message {
@@ -343,8 +358,8 @@ interface ConfettiPiece {
       font-size: 2.5rem;
       font-weight: bold;
       color: var(--accent-yellow);
-      text-shadow: 0 0 30px rgba(251, 191, 36, 0.8), 0 0 60px rgba(251, 191, 36, 0.4);
-      animation: pulse 0.5s ease-in-out infinite alternate;
+      text-shadow: 0 0 30px rgba(251, 191, 36, 0.8);
+      animation: pulse 0.5s infinite alternate;
       z-index: 1001;
     }
 
@@ -356,113 +371,284 @@ interface ConfettiPiece {
     .board {
       position: relative;
       background:
-        radial-gradient(ellipse at center, #1a2a3a 0%, var(--board-bg) 100%);
+        radial-gradient(ellipse at center, #0d1520 0%, var(--board-bg) 100%),
+        linear-gradient(135deg, #0a0f18 0%, #050a0f 100%);
       border: 4px solid var(--board-border);
       border-radius: 8px;
       box-shadow:
-        0 0 30px rgba(45, 90, 39, 0.5),
-        inset 0 0 60px rgba(0, 0, 0, 0.5);
+        0 0 50px rgba(26, 61, 21, 0.7),
+        inset 0 0 100px rgba(0, 0, 0, 0.8);
     }
 
-    .snake-segment {
-      transition: all 0.05s ease;
+    .snake-part {
+      position: absolute;
+      transition: all 0.05s linear;
     }
 
-    .snake-head-details {
+    .snake-head {
       position: absolute;
       width: 100%;
       height: 100%;
-      pointer-events: none;
     }
 
-    .eyes {
-      position: absolute;
+    .head-base {
+      position: relative;
+      width: 100%;
+      height: 100%;
       display: flex;
-      justify-content: space-between;
-      width: 60%;
-      height: 30%;
-      top: 20%;
-      left: 20%;
+      flex-direction: column;
+      background: radial-gradient(ellipse at 50% 30%, #3a6b2a 0%, #2d5a20 30%, #1a3d15 70%, #0d2610 100%);
     }
 
-    .eyes.up { top: 15%; flex-direction: row; }
-    .eyes.down { top: auto; bottom: 15%; flex-direction: row; }
-    .eyes.left { top: 25%; left: 15%; flex-direction: column; width: 30%; height: 50%; }
-    .eyes.right { top: 25%; left: auto; right: 15%; flex-direction: column; width: 30%; height: 50%; }
-
-    .eye {
-      background: radial-gradient(circle at 50% 50%, #f5f5dc 0%, #e8dcc8 60%, #c9b896 100%);
-      border-radius: 50%;
-      box-shadow:
-        inset 2px 2px 4px rgba(255,255,255,0.5),
-        inset -1px -1px 3px rgba(0,0,0,0.3),
-        0 0 3px rgba(0,0,0,0.5);
+    .head-top, .head-bottom {
+      height: 25%;
       display: flex;
       justify-content: center;
       align-items: center;
     }
 
-    .eyes.up .eye, .eyes.down .eye {
-      width: 40%;
-      height: 100%;
+    .head-scale-row {
+      display: flex;
+      gap: 15%;
+      justify-content: center;
     }
 
-    .eyes.left .eye, .eyes.right .eye {
-      width: 100%;
-      height: 40%;
-    }
-
-    .pupil {
-      background: radial-gradient(circle at 30% 30%, #1a1a1a 0%, #000 70%);
+    .scale {
+      background: radial-gradient(ellipse at 50% 50%, rgba(255,255,255,0.15) 0%, transparent 70%);
       border-radius: 50%;
-      box-shadow: inset 1px 1px 2px rgba(255,255,255,0.2);
     }
 
-    .eyes.up .pupil, .eyes.down .pupil {
-      width: 50%;
-      height: 70%;
+    .scale.detail {
+      width: 30%;
+      height: 60%;
     }
 
-    .eyes.left .pupil, .eyes.right .pupil {
-      width: 70%;
+    .scale.center {
+      width: 40%;
       height: 50%;
     }
 
-    .tongue {
+    .eye-socket {
       position: absolute;
-      width: 4px;
-      height: 20%;
-      background: linear-gradient(180deg, #cc3344 0%, #ff5566 60%, #ff8899 100%);
-      border-radius: 2px 2px 4px 4px;
+      width: 24%;
+      height: 28%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .eye-socket.left { left: 15%; top: 18%; }
+    .eye-socket.right { right: 15%; top: 18%; }
+
+    .eye-socket.up { top: 12%; }
+    .eye-socket.down { top: auto; bottom: 18%; }
+    .eye-socket.left.dir-left { left: 10%; top: 30%; }
+    .eye-socket.right.dir-right { right: 10%; top: 30%; }
+
+    .eye {
+      width: 100%;
+      height: 100%;
+      background: radial-gradient(circle at 50% 40%, #faf5e0 0%, #e8d9b8 30%, #c9a86c 60%, #8b6914 100%);
+      border-radius: 50%;
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      box-shadow:
+        inset 2px 2px 4px rgba(255,255,255,0.6),
+        inset -2px -2px 4px rgba(0,0,0,0.4),
+        0 0 8px rgba(0,0,0,0.6);
+    }
+
+    .eyelid {
+      position: absolute;
+      width: 100%;
+      background: linear-gradient(to bottom, #2d5a20, #1a3d15);
+      border-radius: 50%;
+    }
+
+    .eyelid.upper {
+      top: 0;
+      height: 50%;
       transform-origin: top center;
     }
 
-    .tongue.up { top: 85%; left: 45%; transform: rotate(0deg); }
-    .tongue.down { top: auto; bottom: 85%; left: 45%; transform: rotate(180deg); }
-    .tongue.left { top: 40%; left: auto; right: 80%; transform: rotate(-90deg); }
-    .tongue.right { top: 40%; left: 80%; right: auto; transform: rotate(90deg); }
+    .eyelid.lower {
+      bottom: 0;
+      height: 50%;
+      transform-origin: bottom center;
+    }
 
-    .tongue::after, .tongue::before {
+    .pupil {
+      width: 55%;
+      height: 70%;
+      background: radial-gradient(circle at 35% 35%, #0a0a0a 0%, #000 50%, #1a1a1a 80%, #2a2a2a 100%);
+      border-radius: 50%;
+      z-index: 1;
+      box-shadow: inset 1px 1px 2px rgba(255,255,255,0.2);
+    }
+
+    .pupil.up { transform: translateY(-15%); }
+    .pupil.down { transform: translateY(15%); }
+    .pupil.left { transform: translateX(-15%); }
+    .pupil.right { transform: translateX(15%); }
+
+    .head-center {
+      flex: 1;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .scale-row {
+      display: flex;
+      gap: 20%;
+    }
+
+    .snout-area {
+      height: 35%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-end;
+      position: relative;
+    }
+
+    .snout {
+      width: 35%;
+      height: 40%;
+      background: linear-gradient(180deg, #2d5a20 0%, #1a3d15 100%);
+      border-radius: 50% 50% 45% 45%;
+      position: relative;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .nostril {
+      position: absolute;
+      width: 4px;
+      height: 3px;
+      background: #0d2610;
+      border-radius: 50%;
+      top: 40%;
+    }
+
+    .nostril.left { left: 20%; }
+    .nostril.right { right: 20%; }
+
+    .mouth {
+      position: absolute;
+      width: 45%;
+      height: 0%;
+      background: linear-gradient(180deg, #1a0505 0%, #4a0f0f 100%);
+      top: 75%;
+      border-radius: 0 0 50% 50%;
+      overflow: hidden;
+      transition: height 0.05s ease-out;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .mouth.open {
+      height: 60%;
+      box-shadow: 0 0 10px rgba(74, 20, 20, 0.8);
+    }
+
+    .upper-jaw {
+      width: 100%;
+      height: 40%;
+      background: linear-gradient(180deg, #2d4a20 0%, #1a3d15 100%);
+      border-radius: 0 0 30% 30%;
+    }
+
+    .lower-jaw {
+      width: 100%;
+      height: 60%;
+      background: linear-gradient(180deg, #1a3d15 0%, #0d2610 100%);
+      border-radius: 30% 30% 0 0;
+      transform-origin: top center;
+      transition: transform 0.05s ease-out;
+    }
+
+    .lower-jaw.extended {
+      transform: scaleY(1.2) translateY(10%);
+    }
+
+    .fangs {
+      position: absolute;
+      top: 5%;
+      width: 80%;
+      display: flex;
+      justify-content: space-between;
+    }
+
+    .fang {
+      width: 4px;
+      height: 15px;
+      background: linear-gradient(180deg, #faf5e0 0%, #e8d9b8 50%, #c9a86c 100%);
+      border-radius: 2px 2px 50% 50%;
+      box-shadow: 0 0 3px rgba(0,0,0,0.3);
+    }
+
+    .fang.left { transform: rotate(-10deg); }
+    .fang.right { transform: rotate(10deg); }
+
+    .tongue {
+      position: absolute;
+      top: 50%;
+      width: 4px;
+      height: 0;
+      background: linear-gradient(180deg, #8b1538 0%, #c41e3a 50%, #e8264b 100%);
+      border-radius: 2px;
+      transform-origin: top center;
+    }
+
+    .tongue.visible {
+      height: 25px;
+      animation: tongue-snap 0.15s ease-out forwards;
+    }
+
+    .tongue.visible::after, .tongue.visible::before {
       content: '';
       position: absolute;
       width: 3px;
-      height: 8px;
-      background: linear-gradient(180deg, #ff5566 0%, #ff8899 100%);
+      height: 10px;
+      background: linear-gradient(180deg, #c41e3a 0%, #e8264b 100%);
       border-radius: 1px;
       top: 100%;
     }
 
-    .tongue::after { left: -2px; transform: rotate(-20deg); }
-    .tongue::before { left: 3px; transform: rotate(20deg); }
+    .tongue.visible::after { left: -2px; transform: rotate(-20deg); }
+    .tongue.visible::before { left: 3px; transform: rotate(20deg); }
 
-    .scales {
+    @keyframes tongue-snap {
+      0% { transform: scaleY(0); }
+      50% { transform: scaleY(1.2); }
+      100% { transform: scaleY(1); }
+    }
+
+    .body-segment {
       position: absolute;
       width: 100%;
       height: 100%;
-      background:
-        radial-gradient(ellipse at 30% 70%, rgba(255,255,255,0.1) 0%, transparent 30%),
-        radial-gradient(ellipse at 70% 60%, rgba(255,255,255,0.08) 0%, transparent 25%);
-      border-radius: inherit;
+      background: radial-gradient(ellipse at 50% 50%, #2d5a20 0%, #1a3d15 50%, #0d2610 100%);
+      border-radius: 45% 55% 50% 50% / 50% 45% 55% 50%;
+      box-shadow:
+        inset 2px 2px 4px rgba(100,160,80,0.3),
+        inset -2px -2px 4px rgba(0,0,0,0.4),
+        0 0 10px rgba(26,61,21,0.5);
+    }
+
+    .scale-pattern {
+      width: 100%;
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-around;
+      padding: 15% 20%;
     }
 
     .food {
@@ -473,21 +659,23 @@ interface ConfettiPiece {
     .food::before {
       content: '';
       position: absolute;
-      width: 30%;
-      height: 25%;
+      width: 40%;
+      height: 35%;
       background: radial-gradient(ellipse at center, rgba(255,255,255,0.7) 0%, transparent 70%);
       border-radius: 50%;
-      top: 15%;
-      left: 20%;
+      top: 10%;
+      left: 12%;
     }
 
     .food::after {
-      content: '🍎';
+      content: '';
       position: absolute;
-      font-size: 0.8em;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
+      width: 25%;
+      height: 20%;
+      background: rgba(100, 20, 20, 0.9);
+      border-radius: 50%;
+      bottom: 20%;
+      right: 15%;
     }
 
     .overlay {
@@ -500,7 +688,7 @@ interface ConfettiPiece {
       flex-direction: column;
       justify-content: center;
       align-items: center;
-      background: rgba(0, 0, 0, 0.85);
+      background: rgba(0, 0, 0, 0.9);
       border-radius: 8px;
       color: white;
       text-align: center;
@@ -518,9 +706,7 @@ interface ConfettiPiece {
       border-radius: 4px;
       color: var(--bg-primary);
       cursor: pointer;
-      transition: transform 0.1s;
     }
-    .overlay button:hover { transform: scale(1.05); }
 
     .controls-info, .world-record-info {
       margin-top: 1rem;
@@ -528,10 +714,7 @@ interface ConfettiPiece {
       color: var(--text-secondary);
     }
 
-    .world-record-info {
-      color: var(--accent-purple);
-      font-weight: bold;
-    }
+    .world-record-info { color: var(--accent-purple); font-weight: bold; }
 
     .instructions {
       display: flex;
@@ -546,6 +729,7 @@ export class GameBoardComponent implements OnInit {
   readonly themeService = inject(ThemeService);
   readonly confetti = signal<ConfettiPiece[]>([]);
   readonly showSettings = signal(false);
+  soundEnabled = true;
 
   worldRecordInput = 500;
   speedInput = 150;
@@ -556,6 +740,10 @@ export class GameBoardComponent implements OnInit {
     const config = this.snakeService.getConfig();
     this.worldRecordInput = config.worldRecord;
     this.speedInput = config.initialSpeed;
+  }
+
+  toggleSound(): void {
+    this.soundEnabled = !this.soundEnabled;
   }
 
   applySettings(): void {
@@ -590,26 +778,14 @@ export class GameBoardComponent implements OnInit {
     setTimeout(() => this.confetti.set([]), 4000);
   }
 
-  getEyesClass(): string {
-    const dir = this.snakeService.direction();
-    const classMap: Record<Direction, string> = {
-      UP: 'up',
-      DOWN: 'down',
-      LEFT: 'left',
-      RIGHT: 'right',
-    };
-    return classMap[dir];
+  getScalePattern(index: number): string[] {
+    const patterns = ['top-left', 'top-right', 'bottom-left', 'bottom-right'];
+    return [patterns[index % 4], patterns[(index + 1) % 4]];
   }
 
-  getTongueClass(): string {
+  getDirectionClass(): string {
     const dir = this.snakeService.direction();
-    const classMap: Record<Direction, string> = {
-      UP: 'up',
-      DOWN: 'down',
-      LEFT: 'left',
-      RIGHT: 'right',
-    };
-    return classMap[dir];
+    return dir.toLowerCase();
   }
 
   @HostListener('window:keydown', ['$event'])

@@ -22,5 +22,5 @@ export const DEFAULT_CONFIG: GameConfig = {
   cellSize: 25,
   initialSpeed: 150,
   speedIncrease: 5,
-  worldRecord: 50,
+  worldRecord: 500,
 };
