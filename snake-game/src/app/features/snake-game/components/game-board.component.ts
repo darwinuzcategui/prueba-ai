@@ -1,6 +1,7 @@
-import { Component, inject, HostListener, signal, effect } from '@angular/core';
+import { Component, inject, HostListener, signal, effect, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { SnakeService, WORLD_RECORD } from '../../../core/services/snake.service';
+import { FormsModule } from '@angular/forms';
+import { SnakeService } from '../../../core/services/snake.service';
 import { Direction } from '../models/snake.model';
 
 interface ConfettiPiece {
@@ -15,15 +16,44 @@ interface ConfettiPiece {
 @Component({
   selector: 'app-game-board',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, FormsModule],
   template: `
     <div class="game-container">
+      @if (showSettings()) {
+        <div class="settings-panel">
+          <h2>⚙️ Configuración</h2>
+          <div class="setting-item">
+            <label>Record Mundial:</label>
+            <input
+              type="number"
+              [(ngModel)]="worldRecordInput"
+              min="100"
+              max="10000"
+              step="100"
+            />
+          </div>
+          <div class="setting-item">
+            <label>Velocidad (ms):</label>
+            <input
+              type="number"
+              [(ngModel)]="speedInput"
+              min="50"
+              max="500"
+              step="10"
+            />
+          </div>
+          <button class="btn-primary" (click)="applySettings()">Aplicar</button>
+          <button class="btn-secondary" (click)="showSettings.set(false)">Cerrar</button>
+        </div>
+      }
+
       <div class="game-header">
         <div class="score">Score: {{ snakeService.score() }}</div>
-        <div class="high-score">High Score: {{ snakeService.highScore() }}</div>
-        <div class="world-record" [class.achieved]="snakeService.score() >= WORLD_RECORD">
-          🏆 World Record: {{ snakeService.worldRecord() }}
+        <div class="high-score">🏆 Best: {{ snakeService.highScore() }}</div>
+        <div class="world-record" [class.achieved]="snakeService.score() >= snakeService.worldRecord()">
+          🌍 Record: {{ snakeService.worldRecord() }}
         </div>
+        <button class="settings-btn" (click)="showSettings.set(true)">⚙️</button>
       </div>
 
       @if (snakeService.showConfetti()) {
@@ -40,7 +70,7 @@ interface ConfettiPiece {
             ></div>
           }
         </div>
-        <div class="confetti-message">🎉 NEW WORLD RECORD! 🎉</div>
+        <div class="confetti-message">🎉 NUEVO RECORD MUNDIAL! 🎉</div>
       }
 
       <div
@@ -48,60 +78,68 @@ interface ConfettiPiece {
         [style.width.px]="snakeService.boardSize().width"
         [style.height.px]="snakeService.boardSize().height"
       >
-        @for (segment of snakeService.snake(); track $index; let last = $last) {
+        @for (segment of snakeService.snake(); track $index) {
           <div
             class="snake-segment"
             [style]="snakeService.getSnakeSegmentStyle(segment, $index, snakeService.snake().length)"
-            [class.head]="$index === 0"
-            [class.body]="$index > 0"
           >
             @if ($index === 0) {
-              <div class="snake-eyes" [class]="getEyesClass()"></div>
+              <div class="snake-head-details">
+                <div class="eyes" [class]="getEyesClass()">
+                  <div class="eye left-eye">
+                    <div class="pupil"></div>
+                  </div>
+                  <div class="eye right-eye">
+                    <div class="pupil"></div>
+                  </div>
+                </div>
+                <div class="tongue" [class]="getTongueClass()"></div>
+                <div class="scales"></div>
+              </div>
             }
           </div>
         }
         <div
           class="food"
-          [style]="getFoodStyle()"
-        >
-          <div class="food-shine"></div>
-        </div>
+          [style]="snakeService.getFoodStyle(snakeService.food())"
+        ></div>
       </div>
 
       @if (snakeService.gameState() === 'IDLE') {
         <div class="overlay">
           <h2>🐍 Snake Game</h2>
-          <p>Press SPACE or click to start</p>
+          <p>Presiona ESPACIO o clic para comenzar</p>
           <div class="controls-info">
-            <span>↑↓←→ or WASD to move</span>
+            <span>↑↓←→ o WASD para mover</span>
           </div>
           <div class="world-record-info">
-            🏆 Beat {{ WORLD_RECORD }} points to set a world record!
+            🌍 Alcanza {{ snakeService.worldRecord() }} puntos para ser récord mundial!
           </div>
         </div>
       }
 
       @if (snakeService.gameState() === 'PAUSED') {
         <div class="overlay">
-          <h2>⏸️ Paused</h2>
-          <p>Press SPACE to continue</p>
+          <h2>⏸️ Pausado</h2>
+          <p>Presiona ESPACIO para continuar</p>
         </div>
       }
 
       @if (snakeService.gameState() === 'GAME_OVER') {
         <div class="overlay game-over">
           <h2>💀 Game Over</h2>
-          <p>Score: {{ snakeService.score() }}</p>
-          @if (snakeService.score() >= WORLD_RECORD) {
-            <p class="new-record">🏆 NEW WORLD RECORD!</p>
+          <p>Puntuación: {{ snakeService.score() }}</p>
+          @if (snakeService.score() >= snakeService.worldRecord()) {
+            <p class="new-record">🌍 NUEVO RECORD MUNDIAL!</p>
           }
-          <button (click)="snakeService.initGame()">Play Again</button>
+          <button (click)="snakeService.initGame()">Jugar de Nuevo</button>
         </div>
       }
 
       <div class="instructions">
-        <span>SPACE: Start/Pause</span>
-        <span>Arrow Keys or WASD: Move</span>
+        <span>ESPACIO: Iniciar/Pausar</span>
+        <span>Flechas o WASD: Mover</span>
+        <span>⚙️: Configuración</span>
       </div>
     </div>
   `,
@@ -115,19 +153,123 @@ interface ConfettiPiece {
       position: relative;
     }
 
+    .settings-panel {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background: linear-gradient(145deg, #1a1a2e 0%, #16213e 100%);
+      border: 2px solid #4ade80;
+      border-radius: 12px;
+      padding: 2rem;
+      z-index: 100;
+      box-shadow: 0 0 30px rgba(74, 222, 128, 0.3);
+      min-width: 300px;
+    }
+
+    .settings-panel h2 {
+      text-align: center;
+      margin-bottom: 1.5rem;
+      color: #4ade80;
+    }
+
+    .setting-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 1rem;
+      gap: 1rem;
+    }
+
+    .setting-item label {
+      color: #ccc;
+      font-size: 0.9rem;
+    }
+
+    .setting-item input {
+      width: 120px;
+      padding: 0.5rem;
+      border: 1px solid #4ade80;
+      border-radius: 4px;
+      background: #0f0f1a;
+      color: white;
+      text-align: center;
+      font-size: 1rem;
+    }
+
+    .setting-item input:focus {
+      outline: none;
+      border-color: #22c55e;
+      box-shadow: 0 0 10px rgba(74, 222, 128, 0.3);
+    }
+
+    .btn-primary {
+      width: 100%;
+      padding: 0.75rem;
+      margin-top: 0.5rem;
+      background: #4ade80;
+      border: none;
+      border-radius: 6px;
+      color: #0f0f1a;
+      font-weight: bold;
+      cursor: pointer;
+      transition: transform 0.1s;
+    }
+
+    .btn-primary:hover { transform: scale(1.02); }
+
+    .btn-secondary {
+      width: 100%;
+      padding: 0.5rem;
+      margin-top: 0.5rem;
+      background: transparent;
+      border: 1px solid #6b7280;
+      border-radius: 6px;
+      color: #9ca3af;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .btn-secondary:hover {
+      border-color: #9ca3af;
+      color: #ccc;
+    }
+
     .game-header {
       display: flex;
       justify-content: space-between;
+      align-items: center;
       width: 100%;
       max-width: 500px;
-      font-size: 1.25rem;
+      font-size: 1.1rem;
       font-weight: bold;
+      gap: 1rem;
     }
 
     .score { color: #4ade80; }
     .high-score { color: #fbbf24; }
     .world-record { color: #a855f7; }
-    .world-record.achieied { color: #f472b6; text-shadow: 0 0 10px #f472b6; }
+    .world-record.achieved {
+      color: #f472b6;
+      text-shadow: 0 0 10px #f472b6;
+      animation: pulse 0.5s ease-in-out infinite alternate;
+    }
+
+    .settings-btn {
+      background: transparent;
+      border: 2px solid #6b7280;
+      border-radius: 50%;
+      width: 40px;
+      height: 40px;
+      font-size: 1.2rem;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .settings-btn:hover {
+      border-color: #4ade80;
+      color: #4ade80;
+    }
 
     .confetti-container {
       position: fixed;
@@ -162,7 +304,7 @@ interface ConfettiPiece {
       top: 50%;
       left: 50%;
       transform: translate(-50%, -50%);
-      font-size: 3rem;
+      font-size: 2.5rem;
       font-weight: bold;
       color: #fbbf24;
       text-shadow: 0 0 30px rgba(251, 191, 36, 0.8), 0 0 60px rgba(251, 191, 36, 0.4);
@@ -177,75 +319,140 @@ interface ConfettiPiece {
 
     .board {
       position: relative;
-      background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
-      border: 4px solid #4ade80;
+      background:
+        radial-gradient(ellipse at center, #1a2a3a 0%, #0f1922 100%),
+        linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+      border: 4px solid #2d5a27;
       border-radius: 8px;
-      box-shadow: 0 0 30px rgba(74, 222, 128, 0.3);
+      box-shadow:
+        0 0 30px rgba(45, 90, 39, 0.5),
+        inset 0 0 60px rgba(0, 0, 0, 0.5);
     }
 
     .snake-segment {
-      position: absolute;
       transition: all 0.05s ease;
+    }
+
+    .snake-head-details {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+    }
+
+    .eyes {
+      position: absolute;
+      display: flex;
+      justify-content: space-between;
+      width: 60%;
+      height: 30%;
+      top: 20%;
+      left: 20%;
+    }
+
+    .eyes.up { top: 15%; flex-direction: row; }
+    .eyes.down { top: auto; bottom: 15%; flex-direction: row; }
+    .eyes.left { top: 25%; left: 15%; flex-direction: column; width: 30%; height: 50%; }
+    .eyes.right { top: 25%; left: auto; right: 15%; flex-direction: column; width: 30%; height: 50%; }
+
+    .eye {
+      background: radial-gradient(circle at 50% 50%, #f5f5dc 0%, #e8dcc8 60%, #c9b896 100%);
+      border-radius: 50%;
+      box-shadow:
+        inset 2px 2px 4px rgba(255,255,255,0.5),
+        inset -1px -1px 3px rgba(0,0,0,0.3),
+        0 0 3px rgba(0,0,0,0.5);
       display: flex;
       justify-content: center;
       align-items: center;
     }
 
-    .snake-segment.body {
-      background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
-      box-shadow: 0 0 8px rgba(34, 197, 94, 0.4),
-                  inset 0 1px 2px rgba(255,255,255,0.2),
-                  inset 0 -1px 2px rgba(0,0,0,0.2);
+    .eyes.up .eye, .eyes.down .eye {
+      width: 40%;
+      height: 100%;
     }
 
-    .snake-segment.head {
-      background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
-      box-shadow: 0 0 15px rgba(34, 197, 94, 0.8),
-                  inset 0 2px 4px rgba(255,255,255,0.3),
-                  inset 0 -2px 4px rgba(0,0,0,0.3);
+    .eyes.left .eye, .eyes.right .eye {
+      width: 100%;
+      height: 40%;
     }
 
-    .snake-eyes {
-      display: flex;
-      gap: 4px;
-      position: absolute;
-      top: 20%;
-    }
-
-    .snake-eyes.up { flex-direction: row; top: 20%; }
-    .snake-eyes.down { flex-direction: row; top: auto; bottom: 20%; }
-    .snake-eyes.left { flex-direction: column; left: 20%; }
-    .snake-eyes.right { flex-direction: column; left: auto; right: 20%; }
-
-    .snake-eyes::before,
-    .snake-eyes::after {
-      content: '';
-      width: 4px;
-      height: 4px;
-      background: #000;
+    .pupil {
+      background: radial-gradient(circle at 30% 30%, #1a1a1a 0%, #000 70%);
       border-radius: 50%;
-      box-shadow: 0 0 2px rgba(255,255,255,0.5);
+      box-shadow: inset 1px 1px 2px rgba(255,255,255,0.2);
+    }
+
+    .eyes.up .pupil, .eyes.down .pupil {
+      width: 50%;
+      height: 70%;
+    }
+
+    .eyes.left .pupil, .eyes.right .pupil {
+      width: 70%;
+      height: 50%;
+    }
+
+    .tongue {
+      position: absolute;
+      width: 4px;
+      height: 20%;
+      background: linear-gradient(180deg, #cc3344 0%, #ff5566 60%, #ff8899 100%);
+      border-radius: 2px 2px 4px 4px;
+      transform-origin: top center;
+    }
+
+    .tongue.up { top: 85%; left: 45%; transform: rotate(0deg); }
+    .tongue.down { top: auto; bottom: 85%; left: 45%; transform: rotate(180deg); }
+    .tongue.left { top: 40%; left: auto; right: 80%; transform: rotate(-90deg); }
+    .tongue.right { top: 40%; left: 80%; right: auto; transform: rotate(90deg); }
+
+    .tongue::after, .tongue::before {
+      content: '';
+      position: absolute;
+      width: 3px;
+      height: 8px;
+      background: linear-gradient(180deg, #ff5566 0%, #ff8899 100%);
+      border-radius: 1px;
+      top: 100%;
+    }
+
+    .tongue::after { left: -2px; transform: rotate(-20deg); }
+    .tongue::before { left: 3px; transform: rotate(20deg); }
+
+    .scales {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      background:
+        radial-gradient(ellipse at 30% 70%, rgba(255,255,255,0.1) 0%, transparent 30%),
+        radial-gradient(ellipse at 70% 60%, rgba(255,255,255,0.08) 0%, transparent 25%);
+      border-radius: inherit;
     }
 
     .food {
       position: absolute;
-      background: radial-gradient(circle at 30% 30%, #ff6b6b, #ef4444, #dc2626);
-      border-radius: 50%;
-      box-shadow: 0 0 20px rgba(239, 68, 68, 0.8), inset 0 -3px 6px rgba(0,0,0,0.3);
-      display: flex;
-      justify-content: center;
-      align-items: center;
       overflow: hidden;
     }
 
-    .food-shine {
+    .food::before {
+      content: '';
       position: absolute;
       width: 30%;
-      height: 30%;
-      background: rgba(255, 255, 255, 0.6);
+      height: 25%;
+      background: radial-gradient(ellipse at center, rgba(255,255,255,0.7) 0%, transparent 70%);
       border-radius: 50%;
       top: 15%;
-      left: 15%;
+      left: 20%;
+    }
+
+    .food::after {
+      content: '🍎';
+      position: absolute;
+      font-size: 0.8em;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
     }
 
     .overlay {
@@ -298,12 +505,29 @@ interface ConfettiPiece {
     }
   `]
 })
-export class GameBoardComponent {
+export class GameBoardComponent implements OnInit {
   readonly snakeService = inject(SnakeService);
-  readonly WORLD_RECORD = WORLD_RECORD;
   readonly confetti = signal<ConfettiPiece[]>([]);
+  readonly showSettings = signal(false);
+
+  worldRecordInput = 500;
+  speedInput = 150;
 
   private confettiColors = ['#4ade80', '#fbbf24', '#ef4444', '#3b82f6', '#a855f7', '#ec4899', '#22c55e'];
+
+  ngOnInit(): void {
+    const config = this.snakeService.getConfig();
+    this.worldRecordInput = config.worldRecord;
+    this.speedInput = config.initialSpeed;
+  }
+
+  applySettings(): void {
+    this.snakeService.updateConfig({
+      worldRecord: Math.max(100, this.worldRecordInput),
+      initialSpeed: Math.max(50, Math.min(500, this.speedInput)),
+    });
+    this.showSettings.set(false);
+  }
 
   constructor() {
     effect(() => {
@@ -340,9 +564,15 @@ export class GameBoardComponent {
     return classMap[dir];
   }
 
-  getFoodStyle(): Record<string, string> {
-    const food = this.snakeService.food();
-    return this.snakeService.getCellStyle(food, false);
+  getTongueClass(): string {
+    const dir = this.snakeService.direction();
+    const classMap: Record<Direction, string> = {
+      UP: 'up',
+      DOWN: 'down',
+      LEFT: 'left',
+      RIGHT: 'right',
+    };
+    return classMap[dir];
   }
 
   @HostListener('window:keydown', ['$event'])
