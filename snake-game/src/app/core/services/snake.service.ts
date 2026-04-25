@@ -310,71 +310,90 @@ export class SnakeService {
     }
   }
 
-  getSnakePartStyle(part: SnakePart, index: number, total: number): Record<string, string> {
-    const cellSize = this.config.cellSize;
-    const isHead = part.isHead;
-    const baseScale = part.scale;
-    const progress = index / Math.max(total - 1, 1);
+  readonly snakePath = computed(() => {
+    const segments = this.snake();
+    if (segments.length < 2) return '';
+    const cs = this.config.cellSize;
 
-    const x = part.pos.x * cellSize;
-    const y = part.pos.y * cellSize;
+    const leftPoints: { x: number; y: number }[] = [];
+    const rightPoints: { x: number; y: number }[] = [];
 
-    // Multipliers > 1.0 create overlap between segments, ensuring a continuous body without separation
-    const width = cellSize * baseScale * (isHead ? 1.4 : 1.3);
-    const height = cellSize * baseScale * (isHead ? 1.35 : 1.3);
-    const left = x - (width - cellSize) / 2;
-    const top = y - (height - cellSize) / 2;
+    for (let i = 0; i < segments.length; i++) {
+      const p = segments[i].pos;
+      const cx = p.x * cs + cs / 2;
+      const cy = p.y * cs + cs / 2;
+      const progress = i / (segments.length - 1);
+      const thickness = cs * 0.45 * (1 - progress * 0.6);
 
-    const baseHue = 95 + Math.sin(index * 0.4) * 15;
-    const saturation = 60 + progress * 15;
-    const lightness = 35 + Math.sin(index * 0.8) * 8;
+      let dx = 0, dy = 0;
+      if (i === 0) {
+        const next = segments[1].pos;
+        dx = next.x - p.x;
+        dy = next.y - p.y;
+      } else if (i === segments.length - 1) {
+        const prev = segments[i - 1].pos;
+        dx = p.x - prev.x;
+        dy = p.y - prev.y;
+      } else {
+        const prev = segments[i - 1].pos;
+        const next = segments[i + 1].pos;
+        dx = next.x - prev.x;
+        dy = next.y - prev.y;
+      }
+      const len = Math.sqrt(dx * dx + dy * dy) || 1;
+      const nx = -dy / len;
+      const ny = dx / len;
 
-    const darkColor = `hsl(${baseHue}, ${saturation}%, ${lightness}%)`;
-    const midColor = `hsl(${baseHue + 15}, ${saturation + 10}%, ${lightness + 12}%)`;
-    const lightColor = `hsl(${baseHue + 25}, ${saturation - 10}%, ${lightness + 25}%)`;
-    const shadowColor = `hsl(${baseHue - 15}, ${saturation}%, ${lightness - 15}%)`;
+      leftPoints.push({ x: cx + nx * thickness, y: cy + ny * thickness });
+      rightPoints.push({ x: cx - nx * thickness, y: cy - ny * thickness });
+    }
 
-    const borderRadius = isHead
-      ? '35% 65% 55% 45% / 40% 45% 55% 60%'
-      : `ellipse at ${50 + Math.sin(index * 1.5) * 30}% ${50 + Math.cos(index * 1.2) * 30}%`;
+    let d = `M ${leftPoints[0].x} ${leftPoints[0].y}`;
+    for (let i = 1; i < leftPoints.length; i++) {
+      d += ` L ${leftPoints[i].x} ${leftPoints[i].y}`;
+    }
+    const last = segments.length - 1;
+    const tailCx = segments[last].pos.x * cs + cs / 2;
+    const tailCy = segments[last].pos.y * cs + cs / 2;
+    const tailDirX = tailCx - rightPoints[last].x;
+    const tailDirY = tailCy - rightPoints[last].y;
+    const tailLen = Math.sqrt(tailDirX * tailDirX + tailDirY * tailDirY) || 1;
+    d += ` L ${tailCx + (tailDirX / tailLen) * cs * 0.25} ${tailCy + (tailDirY / tailLen) * cs * 0.25}`;
 
+    for (let i = rightPoints.length - 1; i >= 0; i--) {
+      d += ` L ${rightPoints[i].x} ${rightPoints[i].y}`;
+    }
+
+    const headCx = segments[0].pos.x * cs + cs / 2;
+    const headCy = segments[0].pos.y * cs + cs / 2;
+    const headDirX = headCx - leftPoints[0].x;
+    const headDirY = headCy - leftPoints[0].y;
+    const headLen = Math.sqrt(headDirX * headDirX + headDirY * headDirY) || 1;
+    d += ` L ${headCx + (headDirX / headLen) * cs * 0.4} ${headCy + (headDirY / headLen) * cs * 0.4}`;
+
+    d += ' Z';
+    return d;
+  });
+
+  readonly patternMarkers = computed(() => {
+    const cs = this.config.cellSize;
+    return this.snake()
+      .filter((_, i) => i > 0 && i < this.snake().length - 1 && i % 3 === 0)
+      .map(s => ({ x: s.pos.x * cs + cs / 2, y: s.pos.y * cs + cs / 2 }));
+  });
+
+  getHeadStyle(): Record<string, string> {
+    const head = this.snake()[0];
+    if (!head) return {};
+    const cs = this.config.cellSize;
+    const rot = this.getRotationForDirection(this.direction());
+    const x = head.pos.x * cs + cs / 2 - 20;
+    const y = head.pos.y * cs + cs / 2 - 16;
     return {
-      position: 'absolute',
-      left: `${left}px`,
-      top: `${top}px`,
-      width: `${width}px`,
-      height: `${height}px`,
-      background: `
-        radial-gradient(ellipse at 20% 20%, ${lightColor} 0%, transparent 40%),
-        radial-gradient(ellipse at 80% 80%, ${shadowColor} 0%, transparent 50%),
-        radial-gradient(ellipse at 50% 50%, ${midColor} 0%, ${darkColor} 60%),
-        linear-gradient(${isHead ? '165deg' : '150deg'}, ${midColor} 0%, ${darkColor} 50%, ${shadowColor} 100%)
-      `,
-      borderRadius,
-      boxShadow: `
-        inset 4px 4px 8px ${lightColor},
-        inset -4px -4px 8px ${shadowColor},
-        inset 0 0 20px rgba(0,0,0,0.5),
-        0 0 ${isHead ? 15 : Math.max(3, 12 - progress * 10)}px hsla(${baseHue}, 50%, 25%, ${isHead ? 0.8 : (0.6 - progress * 0.4)})
-      `,
-      transform: `rotate(${part.rotation}deg) scaleY(${isHead ? 1 : 0.92})`,
-      zIndex: String(total - index),
-      transition: 'left 0.04s linear, top 0.04s linear, width 0.06s, height 0.06s, transform 0.04s',
-      filter: `brightness(${0.9 - progress * 0.1}) saturate(${1.15 + progress * 0.15}) contrast(${1.05 + progress * 0.1})`,
-    };
-  }
-
-  getFoodStyle(pos: Position): Record<string, string> {
-    const cellSize = this.config.cellSize;
-
-    return {
-      position: 'absolute',
-      left: `${pos.x * cellSize}px`,
-      top: `${pos.y * cellSize}px`,
-      width: `${cellSize}px`,
-      height: `${cellSize}px`,
-      transform: 'rotate(-20deg) scale(0.8)',
-      zIndex: '5',
+      left: `${x}px`,
+      top: `${y}px`,
+      transform: `rotate(${rot}deg)`,
+      transition: 'left 0.04s linear, top 0.04s linear, transform 0.04s',
     };
   }
 }

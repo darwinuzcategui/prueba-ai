@@ -24,15 +24,57 @@ import { ThemeService } from '../../../core/services/theme.service';
         [style.height.px]="snakeService.boardSize().height"
         [style.background-size]="snakeService.getConfig().cellSize + 'px ' + snakeService.getConfig().cellSize + 'px, ' + snakeService.getConfig().cellSize + 'px ' + snakeService.getConfig().cellSize + 'px, 100% 100%'"
       >
-        @for (segment of snakeService.snake(); track $index) {
-          <div
-            class="snake-part"
-            [class.is-head]="$first"
-            [class.is-tail]="$last && snakeService.snake().length > 1"
-            [class.is-biting]="$first && snakeService.isEating()"
-            [style]="snakeService.getSnakePartStyle(segment, $index, snakeService.snake().length)"
-          ></div>
-        }
+        <svg class="snake-body" [style.width.px]="snakeService.boardSize().width" [style.height.px]="snakeService.boardSize().height">
+          <defs>
+            <linearGradient id="snakeFill" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stop-color="#ffcc00" />
+              <stop offset="50%" stop-color="#ffb800" />
+              <stop offset="100%" stop-color="#ff9500" />
+            </linearGradient>
+          </defs>
+          <path
+            [attr.d]="snakeService.snakePath()"
+            fill="#1a1a1a"
+            stroke="#1a1a1a"
+            stroke-width="4"
+          />
+          <path
+            [attr.d]="snakeService.snakePath()"
+            fill="url(#snakeFill)"
+            stroke="#1a1a1a"
+            stroke-width="3"
+          />
+          @for (p of snakeService.patternMarkers(); track $i; let $i = $index) {
+            <circle
+              [attr.cx]="p.x"
+              [attr.cy]="p.y"
+              r="5"
+              fill="#1a1a1a"
+            />
+            <circle
+              [attr.cx]="p.x - 10"
+              [attr.cy]="p.y - 8"
+              r="3"
+              fill="#1a1a1a"
+            />
+            <circle
+              [attr.cx]="p.x + 10"
+              [attr.cy]="p.y - 8"
+              r="3"
+              fill="#1a1a1a"
+            />
+          }
+        </svg>
+
+        <div
+          class="snake-head"
+          [class.is-biting]="snakeService.isEating()"
+          [style]="snakeService.getHeadStyle()"
+        >
+          @if (snakeService.tongueOut()) {
+            <span class="tongue">👅</span>
+          }
+        </div>
         
         <div 
           class="food" 
@@ -44,57 +86,121 @@ import { ThemeService } from '../../../core/services/theme.service';
       </div>
 
       @if (snakeService.gameState() === 'IDLE') {
-        <div class="overlay">
-          <h2>🐍 Photoreal Snake</h2>
-          <p>Presiona ESPACIO para comenzar</p>
+        <div class="overlay scene">
+          <div class="newspaper-stack">
+            <div class="paper paper-1"></div>
+            <div class="paper paper-2"></div>
+            <div class="paper paper-3"></div>
+          </div>
+          <div class="snake-coil">
+            <svg viewBox="0 0 100 60" class="coil-svg">
+              <ellipse cx="50" cy="50" rx="40" ry="8" fill="none" stroke="#1a1a1a" stroke-width="3"/>
+              <ellipse cx="50" cy="42" rx="35" ry="7" fill="none" stroke="#1a1a1a" stroke-width="3"/>
+              <ellipse cx="50" cy="35" rx="30" ry="6" fill="none" stroke="#1a1a1a" stroke-width="3"/>
+              <ellipse cx="50" cy="29" rx="25" ry="5" fill="none" stroke="#1a1a1a" stroke-width="3"/>
+              <circle cx="50" cy="20" r="12" fill="#ffcc00" stroke="#1a1a1a" stroke-width="2"/>
+              <circle cx="45" cy="18" r="3" fill="#1a1a1a"/>
+              <circle cx="55" cy="18" r="3" fill="#1a1a1a"/>
+              <path d="M 43 25 Q 50 30 57 25" fill="none" stroke="#1a1a1a" stroke-width="2"/>
+              <path d="M 46 26 L 48 24" stroke="#1a1a1a" stroke-width="1"/>
+              <path d="M 54 26 L 52 24" stroke="#1a1a1a" stroke-width="1"/>
+            </svg>
+          </div>
+          <div class="donut-half">
+            <span>🍩</span>
+          </div>
+          <h2>🐍 Snake Simpsons</h2>
+          <p>Presiona ESPACIO para despertar</p>
         </div>
       }
 
       @if (snakeService.gameState() === 'PAUSED') {
-        <div class="overlay">
-          <h2>⏸️ Pausado</h2>
-          <p>Presiona ESPACIO para continuar</p>
+        <div class="overlay character-sheet">
+          <h2>📜 Hoja de Personaje</h2>
+          <div class="poses-container">
+            <div class="pose-card">
+              <svg viewBox="0 0 80 60" class="pose-svg">
+                <circle cx="40" cy="25" r="18" fill="#ffcc00" stroke="#1a1a1a" stroke-width="2"/>
+                <circle cx="34" cy="22" r="3" fill="#1a1a1a"/>
+                <circle cx="46" cy="22" r="3" fill="#1a1a1a"/>
+                <path d="M 30 32 Q 40 42 50 32" fill="none" stroke="#1a1a1a" stroke-width="2"/>
+                <path d="M 38 30 L 36 26" stroke="#1a1a1a" stroke-width="1"/>
+                <path d="M 42 30 L 44 26" stroke="#1a1a1a" stroke-width="1"/>
+                <ellipse cx="40" cy="50" rx="15" ry="6" fill="#ffcc00" stroke="#1a1a1a" stroke-width="2"/>
+              </svg>
+              <p>😄 Sonriendo</p>
+            </div>
+            <div class="pose-card">
+              <svg viewBox="0 0 80 60" class="pose-svg">
+                <circle cx="40" cy="25" r="18" fill="#ffcc00" stroke="#1a1a1a" stroke-width="2"/>
+                <path d="M 30 22 L 38 22" stroke="#1a1a1a" stroke-width="2"/>
+                <path d="M 42 22 L 50 22" stroke="#1a1a1a" stroke-width="2"/>
+                <path d="M 35 32 Q 40 35 45 32" fill="none" stroke="#1a1a1a" stroke-width="2"/>
+                <text x="40" y="52" font-size="8" fill="#1a1a1a" text-anchor="middle">Z z z</text>
+              </svg>
+              <p>😴 Durmiendo</p>
+            </div>
+            <div class="pose-card">
+              <svg viewBox="0 0 80 60" class="pose-svg">
+                <circle cx="35" cy="20" r="16" fill="#ffcc00" stroke="#1a1a1a" stroke-width="2"/>
+                <circle cx="29" cy="16" r="3" fill="#1a1a1a"/>
+                <circle cx="41" cy="16" r="3" fill="#1a1a1a"/>
+                <path d="M 26 10 L 32 14" stroke="#1a1a1a" stroke-width="1.5"/>
+                <path d="M 44 10 L 38 14" stroke="#1a1a1a" stroke-width="1.5"/>
+                <path d="M 25 26 L 35 24 L 45 26" fill="none" stroke="#1a1a1a" stroke-width="2"/>
+                <text x="60" y="50" font-size="16">🍩</text>
+                <path d="M 50 35 L 55 30 L 52 38" stroke="#1a1a1a" stroke-width="1.5" fill="none"/>
+              </svg>
+              <p>😠 Enfadado</p>
+            </div>
+          </div>
+          <p class="instruction">Presiona ESPACIO para continuar</p>
         </div>
       }
 
       @if (snakeService.gameState() === 'GAME_OVER') {
-        <div class="overlay game-over">
-          <h2>💀 Devorado</h2>
+        <div class="overlay scene game-over">
+          <div class="snake-defeat">
+            <svg viewBox="0 0 100 50" class="defeat-svg">
+              <circle cx="50" cy="25" r="20" fill="#ffcc00" stroke="#1a1a1a" stroke-width="3"/>
+              <circle cx="42" cy="22" r="4" fill="#1a1a1a"/>
+              <circle cx="58" cy="22" r="4" fill="#1a1a1a"/>
+              <ellipse cx="50" cy="35" rx="8" ry="5" fill="#1a1a1a"/>
+              <path d="M 35 15 Q 30 5 40 10" fill="none" stroke="#1a1a1a" stroke-width="2"/>
+              <path d="M 65 15 Q 70 5 60 10" fill="none" stroke="#1a1a1a" stroke-width="2"/>
+            </svg>
+          </div>
+          <h2>💀¡Maldición!</h2>
           <p>Puntuación: {{ snakeService.score() }}</p>
-          <button (click)="snakeService.initGame()">Jugar de Nuevo</button>
+          <p class="sarcastic">[La serpiente te mirará con desprecio]</p>
+          <button (click)="snakeService.initGame()">¡Intentar de Nuevo!</button>
         </div>
       }
     </div>
   `,
   styles: [`
     :host {
-      --bg-primary: #1a1a2e;
-      --text-primary: #ffffff;
-      --accent-green: #4ade80;
+      --bg-primary: #f5f5dc;
+      --text-primary: #1a1a1a;
+      --accent-green: #ffcc00;
     }
 
     .game-container {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      padding: 2rem;
       background: var(--bg-primary);
-      min-height: 100vh;
-      color: var(--text-primary);
-      font-family: sans-serif;
     }
 
-    .game-header {
-      display: flex;
-      gap: 2rem;
-      font-size: 1.2rem;
-      font-weight: bold;
-      margin-bottom: 2rem;
+    .score { color: #ff6b6b; }
+    .high-score { color: #1a1a1a; }
+    .world-record { color: #ff4757; }
+
+    .world-record.achieved {
+      animation: pulse 0.5s infinite;
     }
 
-    .score { color: #4ade80; }
-    .high-score { color: #fbbf24; }
-    .world-record { color: #a855f7; }
+    @keyframes pulse {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.1); }
+    }
 
     .board {
       position: relative;
@@ -113,78 +219,70 @@ import { ThemeService } from '../../../core/services/theme.service';
       overflow: hidden;
     }
 
-    .snake-part {
+    .snake-body {
       position: absolute;
-      background-color: #2ed573; /* Vibrant green */
-      /* Scale pattern using radial gradients */
-      background-image: radial-gradient(circle at center, rgba(255,255,255,0.3) 2px, transparent 3px);
-      background-size: 8px 8px;
-      border: 3px solid #2f3542; /* Comic contour */
-      box-shadow: inset -4px -4px 0 rgba(0,0,0,0.2), 0 4px 6px rgba(0,0,0,0.3); /* Cel-shading depth */
-      transition: left 0.05s linear, top 0.05s linear;
-      border-radius: 50%;
+      top: 0;
+      left: 0;
+      pointer-events: none;
+      z-index: 5;
+    }
+
+    .snake-head {
+      position: absolute;
+      width: 42px;
+      height: 36px;
       z-index: 10;
+      border-radius: 50%;
+      background: #ffcc00;
+      border: 3px solid #1a1a1a;
+      box-shadow: inset 0 -5px 0 rgba(0,0,0,0.15);
     }
 
-    .snake-part.is-head {
-      background: #1dd1a1 !important; /* Base color overrides the inline gradient */
-      /* Cute tiny nose (nostrils) right between the eyes */
-      background-image: 
-        radial-gradient(circle at 42% 25%, #2f3542 1px, transparent 1.5px),
-        radial-gradient(circle at 58% 25%, #2f3542 1px, transparent 1.5px) !important;
-      border-radius: 35% 35% 50% 50% !important; /* Shaped head */
-      z-index: 20;
+    .snake-head.is-biting {
+      animation: bite 0.1s ease-in-out infinite alternate;
     }
 
-    /* Adorable expressive little eyes */
-    .snake-part.is-head::before,
-    .snake-part.is-head::after {
+    @keyframes bite {
+      0% { transform: scale(1.2); }
+      100% { transform: scale(1.35); }
+    }
+
+    .snake-head::before,
+    .snake-head::after {
       content: '';
       position: absolute;
-      top: 6px;
-      width: 8px;
-      height: 8px;
-      background-color: #fff; /* White sclera */
-      background-image: 
-        radial-gradient(circle at 2.5px 2.5px, #fff 1.5px, transparent 2px), /* Main sparkle */
-        radial-gradient(circle at 6px 6px, #fff 0.5px, transparent 1px), /* Secondary sparkle */
-        radial-gradient(circle at 4px 4.5px, #1e272e 3px, transparent 3.5px); /* Pupil */
-      border: 1.5px solid #2f3542;
+      top: 8px;
+      width: 16px;
+      height: 16px;
+      background: radial-gradient(circle at 50% 50%, #1a1a1a 1.5px, #fff 1.5px, #fff 14px, #1a1a1a 14px);
       border-radius: 50%;
-      box-shadow: 0 1px 0 rgba(0,0,0,0.15);
-    }
-    
-    .snake-part.is-head::before { left: -1px; }
-    .snake-part.is-head::after { right: -1px; }
-
-    .snake-part.is-head.is-biting {
-      transform: scale(1.3) !important;
-      background-color: #1dd1a1 !important; /* Keep cute color */
-      /* Adorable open mouth with teeth, PLUS the cute nose */
-      background-image: 
-        radial-gradient(circle at 42% 25%, #2f3542 1px, transparent 1.5px), /* Left nostril */
-        radial-gradient(circle at 58% 25%, #2f3542 1px, transparent 1.5px), /* Right nostril */
-        radial-gradient(circle at 35% 5%, #fff 1.5px, transparent 2px), /* Left tooth */
-        radial-gradient(circle at 65% 5%, #fff 1.5px, transparent 2px), /* Right tooth */
-        radial-gradient(ellipse at 50% 8%, #ff6b81 8px, transparent 9px) !important; /* Pink mouth at the very front */
-      box-shadow: inset -4px -4px 0 rgba(0,0,0,0.2), 0 6px 12px rgba(0,0,0,0.4) !important;
+      z-index: 15;
+      animation: lookAround 2s ease-in-out infinite alternate;
     }
 
-    /* Keep eyes cute when biting */
-    .snake-part.is-head.is-biting::before,
-    .snake-part.is-head.is-biting::after {
-      top: 8px !important;
+    @keyframes lookAround {
+      0% { transform: translate(-3px, 0); }
+      50% { transform: translate(3px, 0); }
+      100% { transform: translate(-3px, 0); }
     }
 
-    .snake-part.is-tail {
-      background: none !important; /* No gradient */
-      background-color: #00ff00 !important; /* Super bright green */
-      border: none !important; /* Remove comic border to allow crisp triangle clipping */
-      border-radius: 0 !important;
-      clip-path: polygon(50% 100%, 10% 0, 90% 0) !important; /* Pointy trailing triangle */
-      box-shadow: none !important;
-      /* Simulate the comic contour on the clipped shape */
-      filter: drop-shadow(0 2px 0 #2f3542) drop-shadow(0 -2px 0 #2f3542) drop-shadow(2px 0 0 #2f3542) drop-shadow(-2px 0 0 #2f3542) !important;
+    .snake-head::before { left: 3px; }
+    .snake-head::after { right: 3px; }
+
+    .snake-head .tongue {
+      position: absolute;
+      bottom: -10px;
+      left: 50%;
+      transform: translateX(-50%);
+      font-size: 14px;
+      z-index: 20;
+      animation: tongueWag 0.12s infinite alternate;
+      filter: drop-shadow(1px 1px 0 #1a1a1a);
+    }
+
+    @keyframes tongueWag {
+      0% { transform: translateX(-50%) rotate(-25deg); }
+      100% { transform: translateX(-50%) rotate(25deg); }
     }
 
     .food {
@@ -196,9 +294,9 @@ import { ThemeService } from '../../../core/services/theme.service';
     }
 
     .food::after {
-      content: '🍎';
-      font-size: 24px;
-      filter: drop-shadow(0 4px 2px rgba(0,0,0,0.4));
+      content: '🍩';
+      font-size: 22px;
+      filter: drop-shadow(2px 2px 0 #1a1a1a);
     }
 
     @keyframes float {
@@ -211,31 +309,192 @@ import { ThemeService } from '../../../core/services/theme.service';
       top: 50%;
       left: 50%;
       transform: translate(-50%, -50%);
-      background: rgba(0, 0, 0, 0.85);
+      background: rgba(255, 255, 255, 0.95);
       padding: 2rem 4rem;
-      border-radius: 12px;
+      border-radius: 8px;
       text-align: center;
-      box-shadow: 0 0 30px rgba(0,0,0,0.8);
-      border: 2px solid var(--accent-green);
+      box-shadow: 0 0 20px rgba(0,0,0,0.5);
+      border: 3px solid #1a1a1a;
     }
 
     .overlay h2 {
       margin: 0 0 1rem;
-      color: var(--accent-green);
+      color: #ffcc00;
       font-size: 2.5rem;
-      text-shadow: 0 0 10px rgba(74, 222, 128, 0.5);
+      text-shadow: 0 0 10px rgba(255, 204, 0, 0.5), 2px 2px 0 #1a1a1a;
+    }
+
+    .overlay.scene {
+      background: linear-gradient(to bottom, #87CEEB 0%, #98D8C8 100%);
+      border: 4px solid #1a1a1a;
+      padding: 3rem 4rem;
+      min-width: 400px;
+    }
+
+    .scene .newspaper-stack {
+      position: absolute;
+      bottom: 20px;
+      left: 30px;
+      z-index: 5;
+    }
+
+    .scene .paper {
+      width: 60px;
+      height: 8px;
+      background: #f5f5dc;
+      border: 1px solid #ccc;
+      border-radius: 2px;
+      position: absolute;
+    }
+
+    .scene .paper-1 { bottom: 0; transform: rotate(-5deg); }
+    .scene .paper-2 { bottom: 6px; transform: rotate(2deg); }
+    .scene .paper-3 { bottom: 12px; transform: rotate(-3deg); }
+
+    .scene .snake-coil {
+      position: absolute;
+      bottom: 25px;
+      right: 40px;
+    }
+
+    .scene .coil-svg {
+      width: 120px;
+      height: 80px;
+    }
+
+    .scene .donut-half {
+      position: absolute;
+      bottom: 45px;
+      left: 100px;
+      font-size: 28px;
+      animation: donutWobble 1s ease-in-out infinite alternate;
+      filter: drop-shadow(2px 2px 0 #1a1a1a);
+    }
+
+    @keyframes donutWobble {
+      0% { transform: rotate(-10deg); }
+      100% { transform: rotate(10deg); }
+    }
+
+    .overlay.scene.game-over {
+      background: linear-gradient(to bottom, #ff6b6b 0%, #ff4757 100%);
+      border: 4px solid #1a1a1a;
+      padding-top: 3.5rem;
+    }
+
+    .game-over .snake-defeat {
+      position: absolute;
+      top: -30px;
+      left: 50%;
+      transform: translateX(-50%);
+    }
+
+    .game-over .defeat-svg {
+      width: 80px;
+      height: 50px;
+    }
+
+    .game-over h2 {
+      margin-top: 40px;
+      color: #ffcc00;
+      text-shadow: 2px 2px 0 #1a1a1a;
+      animation: shake 0.5s infinite;
+    }
+
+    @keyframes shake {
+      0%, 100% { transform: rotate(-2deg); }
+      50% { transform: rotate(2deg); }
+    }
+
+    .game-over .sarcastic {
+      font-style: italic;
+      color: #333;
+      font-size: 0.9rem;
+      margin: 1rem 0;
+    }
+
+    .game-over button {
+      background: #ffcc00;
+      border: 3px solid #1a1a1a;
+      box-shadow: 3px 3px 0 #1a1a1a;
+    }
+
+    .game-over button:hover {
+      background: #ffe066;
+    }
+
+    .game-over button:active {
+      box-shadow: 1px 1px 0 #1a1a1a;
+      transform: translate(2px, 2px);
+    }
+
+    .character-sheet {
+      background: linear-gradient(to bottom, #f0f0f0 0%, #d0d0d0 100%);
+      border: 4px solid #1a1a1a;
+      padding: 2rem;
+      min-width: 500px;
+    }
+
+    .character-sheet h2 {
+      color: #1a1a1a;
+      text-shadow: none;
+      font-size: 1.8rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .poses-container {
+      display: flex;
+      gap: 1.5rem;
+      justify-content: center;
+      margin: 1.5rem 0;
+    }
+
+    .pose-card {
+      text-align: center;
+      padding: 1rem;
+      background: #fff;
+      border: 2px solid #1a1a1a;
+      border-radius: 8px;
+    }
+
+    .pose-svg {
+      width: 80px;
+      height: 60px;
+    }
+
+    .pose-card p {
+      margin: 0.5rem 0 0;
+      font-weight: bold;
+      color: #1a1a1a;
+    }
+
+    .character-sheet .instruction {
+      color: #666;
+      font-size: 0.9rem;
+      margin-top: 1rem;
     }
 
     button {
       margin-top: 1rem;
       padding: 0.75rem 2rem;
       font-size: 1.1rem;
-      background: var(--accent-green);
-      border: none;
-      border-radius: 6px;
-      color: #000;
+      background: #ffcc00;
+      border: 3px solid #1a1a1a;
+      border-radius: 0;
+      color: #1a1a1a;
       font-weight: bold;
       cursor: pointer;
+      font-family: sans-serif;
+      box-shadow: 3px 3px 0 #1a1a1a;
+    }
+
+    button:hover {
+      background: #ffe066;
+    }
+
+    button:active {
+      box-shadow: 1px 1px 0 #1a1a1a;
+      transform: translate(2px, 2px);
     }
   `]
 })
