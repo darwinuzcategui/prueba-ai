@@ -324,9 +324,9 @@ export class SnakeService {
     const left = x - (width - cellSize) / 2;
     const top = y - (height - cellSize) / 2;
 
-    const baseHue = 85 + Math.sin(index * 0.3) * 20;
-    const saturation = 80 + progress * 10;
-    const lightness = 40 + Math.sin(index * 0.5) * 8;
+    const baseHue = 95 + Math.sin(index * 0.4) * 15;
+    const saturation = 60 + progress * 15;
+    const lightness = 35 + Math.sin(index * 0.8) * 8;
 
     const darkColor = `hsl(${baseHue}, ${saturation}%, ${lightness}%)`;
     const midColor = `hsl(${baseHue + 15}, ${saturation + 10}%, ${lightness + 12}%)`;
@@ -375,15 +375,16 @@ export class SnakeService {
       width: `${cellSize}px`,
       height: `${cellSize}px`,
       background: `
-        radial-gradient(ellipse at 35% 35%, #8B4513 0%, #A0522D 25%, #CD853F 45%, #8B4513 70%, #5D3A1A 100%)
+        linear-gradient(120deg, #FFFDE7 0%, #FFEB3B 30%, #FBC02D 70%, #F57F17 100%)
       `,
-      borderRadius: '40% 60% 55% 45% / 50% 45% 55% 50%',
+      borderRadius: '50% 20% 50% 50% / 50% 50% 20% 50%',
       boxShadow: `
-        inset 3px 3px 8px rgba(210,180,140,0.4),
-        inset -2px -2px 6px rgba(0,0,0,0.5),
-        0 0 ${cellSize * 0.4}px rgba(160,82,45,0.6),
-        0 0 ${cellSize * 0.8}px rgba(139,69,19,0.3)
+        inset 4px 4px 8px rgba(255, 255, 255, 0.6),
+        inset -2px -2px 6px rgba(139, 69, 19, 0.4),
+        0 0 ${cellSize * 0.4}px rgba(255, 235, 59, 0.5),
+        2px 2px 4px rgba(0,0,0,0.3)
       `,
+      transform: 'rotate(-20deg) scale(0.8)',
       zIndex: '5',
     };
   }

@@ -757,10 +757,12 @@ interface ConfettiPiece {
     }
 
     .dorsal-plate {
-      width: 12%;
-      height: 20%;
-      background: radial-gradient(ellipse at 50% 50%, rgba(70,90,50,0.6) 0%, transparent 70%);
-      border-radius: 50%;
+      width: 15%;
+      height: 15%;
+      background: linear-gradient(135deg, rgba(60,70,40,0.8) 0%, rgba(20,30,10,0.9) 100%);
+      transform: rotate(45deg);
+      border-radius: 2px;
+      box-shadow: 1px 1px 2px rgba(0,0,0,0.5);
     }
 
     .lateral-line {
@@ -774,18 +776,32 @@ interface ConfettiPiece {
 
     .food {
       position: absolute;
-      overflow: hidden;
+      overflow: visible;
     }
 
     .food::before {
       content: '';
       position: absolute;
-      width: 30%;
+      width: 25%;
       height: 25%;
-      background: radial-gradient(ellipse at center, rgba(180,140,80,0.6) 0%, transparent 70%);
+      background: #5D4037;
+      top: -5%;
+      right: -5%;
+      border-radius: 50% 50% 0 0;
+      transform: rotate(45deg);
+      box-shadow: inset 1px 1px 2px rgba(0,0,0,0.5);
+    }
+
+    .food::after {
+      content: '';
+      position: absolute;
+      width: 15%;
+      height: 15%;
+      background: #3E2723;
+      bottom: -2%;
+      left: -2%;
       border-radius: 50%;
-      top: 15%;
-      left: 20%;
+      box-shadow: inset -1px -1px 2px rgba(0,0,0,0.5);
     }
 
     .overlay {
