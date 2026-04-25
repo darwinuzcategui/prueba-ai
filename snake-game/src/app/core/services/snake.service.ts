@@ -319,8 +319,9 @@ export class SnakeService {
     const x = part.pos.x * cellSize;
     const y = part.pos.y * cellSize;
 
-    const width = cellSize * baseScale * (isHead ? 1.2 : 1.0);
-    const height = cellSize * baseScale * (isHead ? 1.15 : 0.95);
+    // Multipliers > 1.0 create overlap between segments, ensuring a continuous body without separation
+    const width = cellSize * baseScale * (isHead ? 1.4 : 1.3);
+    const height = cellSize * baseScale * (isHead ? 1.35 : 1.3);
     const left = x - (width - cellSize) / 2;
     const top = y - (height - cellSize) / 2;
 
@@ -336,8 +337,6 @@ export class SnakeService {
     const borderRadius = isHead
       ? '35% 65% 55% 45% / 40% 45% 55% 60%'
       : `ellipse at ${50 + Math.sin(index * 1.5) * 30}% ${50 + Math.cos(index * 1.2) * 30}%`;
-
-    const patternOpacity = isHead ? 0.4 : (0.3 - progress * 0.2);
 
     return {
       position: 'absolute',
@@ -374,16 +373,6 @@ export class SnakeService {
       top: `${pos.y * cellSize}px`,
       width: `${cellSize}px`,
       height: `${cellSize}px`,
-      background: `
-        linear-gradient(120deg, #FFFDE7 0%, #FFEB3B 30%, #FBC02D 70%, #F57F17 100%)
-      `,
-      borderRadius: '50% 20% 50% 50% / 50% 50% 20% 50%',
-      boxShadow: `
-        inset 4px 4px 8px rgba(255, 255, 255, 0.6),
-        inset -2px -2px 6px rgba(139, 69, 19, 0.4),
-        0 0 ${cellSize * 0.4}px rgba(255, 235, 59, 0.5),
-        2px 2px 4px rgba(0,0,0,0.3)
-      `,
       transform: 'rotate(-20deg) scale(0.8)',
       zIndex: '5',
     };
