@@ -27,39 +27,63 @@ import { ThemeService } from '../../../core/services/theme.service';
         <svg class="snake-body" [style.width.px]="snakeService.boardSize().width" [style.height.px]="snakeService.boardSize().height">
           <defs>
             <linearGradient id="snakeFill" x1="0%" y1="0%" x2="100%" y2="100%">
-              <stop offset="0%" stop-color="#ffcc00" />
-              <stop offset="50%" stop-color="#ffb800" />
+              <stop offset="0%" stop-color="#ffe066" />
+              <stop offset="30%" stop-color="#ffcc00" />
+              <stop offset="70%" stop-color="#ffb800" />
               <stop offset="100%" stop-color="#ff9500" />
             </linearGradient>
+            <pattern id="scales" x="0" y="0" width="12" height="12" patternUnits="userSpaceOnUse">
+              <path d="M 6 0 Q 12 6 6 12 Q 0 6 6 0" fill="none" stroke="#1a1a1a" stroke-width="0.5"/>
+            </pattern>
           </defs>
           <path
             [attr.d]="snakeService.snakePath()"
             fill="#1a1a1a"
             stroke="#1a1a1a"
-            stroke-width="4"
+            stroke-width="5"
+            stroke-linejoin="round"
           />
           <path
             [attr.d]="snakeService.snakePath()"
             fill="url(#snakeFill)"
             stroke="#1a1a1a"
-            stroke-width="3"
+            stroke-width="3.5"
+            stroke-linejoin="round"
+          />
+          <path
+            [attr.d]="snakeService.snakePath()"
+            fill="url(#scales)"
+            stroke="none"
+            opacity="0.15"
           />
           @for (p of snakeService.patternMarkers(); track $i; let $i = $index) {
             <circle
               [attr.cx]="p.x"
               [attr.cy]="p.y"
-              r="5"
+              r="6"
               fill="#1a1a1a"
             />
             <circle
-              [attr.cx]="p.x - 10"
-              [attr.cy]="p.y - 8"
+              [attr.cx]="p.x - 12"
+              [attr.cy]="p.y - 10"
+              r="4"
+              fill="#1a1a1a"
+            />
+            <circle
+              [attr.cx]="p.x + 12"
+              [attr.cy]="p.y - 10"
+              r="4"
+              fill="#1a1a1a"
+            />
+            <circle
+              [attr.cx]="p.x - 6"
+              [attr.cy]="p.y + 10"
               r="3"
               fill="#1a1a1a"
             />
             <circle
-              [attr.cx]="p.x + 10"
-              [attr.cy]="p.y - 8"
+              [attr.cx]="p.x + 6"
+              [attr.cy]="p.y + 10"
               r="3"
               fill="#1a1a1a"
             />
@@ -208,19 +232,43 @@ import { ThemeService } from '../../../core/services/theme.service';
 
     .board {
       position: relative;
-      /* Modern wooden board with subtle grid, maintaining a light base for sprite blending */
-      background-image: 
-        linear-gradient(to right, rgba(0, 0, 0, 0.08) 1px, transparent 1px),
-        linear-gradient(to bottom, rgba(0, 0, 0, 0.08) 1px, transparent 1px),
-        radial-gradient(circle at center, #f4e8d1 0%, #d8c3a5 100%);
-      background-color: #eaddca;
-      border: 8px solid #4a3728; /* Wood-like border */
+      background-image:
+        linear-gradient(to right, rgba(0, 0, 0, 0.1) 1px, transparent 1px),
+        linear-gradient(to bottom, rgba(0, 0, 0, 0.1) 1px, transparent 1px),
+        linear-gradient(to bottom, #87CEEB 0%, #a8d8ea 50%, #98D8C8 100%);
+      background-color: #87CEEB;
+      border: 8px solid #4a3728;
       border-radius: 12px;
-      box-shadow: 
-        0 25px 50px -12px rgba(0, 0, 0, 0.5), /* Outer drop shadow */
-        inset 0 0 20px rgba(0, 0, 0, 0.2), /* Inner ambient shadow */
-        inset 0 0 3px rgba(255, 255, 255, 0.6); /* Inner edge highlight */
+      box-shadow:
+        0 25px 50px -12px rgba(0, 0, 0, 0.5),
+        inset 0 0 20px rgba(0, 0, 0, 0.2),
+        inset 0 0 3px rgba(255, 255, 255, 0.6);
       overflow: hidden;
+    }
+
+    .board::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 60px;
+      background: linear-gradient(to bottom, #ff6b6b 0%, #ff4757 100%);
+      z-index: 1;
+    }
+
+    .board::after {
+      content: '🐍 SNAKE SIMPSONS 🍩';
+      position: absolute;
+      top: 15px;
+      left: 50%;
+      transform: translateX(-50%);
+      font-size: 14px;
+      font-weight: bold;
+      color: #fff;
+      text-shadow: 2px 2px 0 #1a1a1a;
+      z-index: 2;
+      font-family: sans-serif;
     }
 
     .snake-body {

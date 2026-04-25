@@ -378,7 +378,7 @@ export class SnakeService {
   readonly patternMarkers = computed(() => {
     const cs = this.config.cellSize;
     return this.snake()
-      .filter((_, i) => i > 0 && i < this.snake().length - 1 && i % 3 === 0)
+      .filter((_, i) => i > 0 && i < this.snake().length - 1 && i % 4 === 0)
       .map(s => ({ x: s.pos.x * cs + cs / 2, y: s.pos.y * cs + cs / 2 }));
   });
 
