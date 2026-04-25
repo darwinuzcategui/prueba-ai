@@ -387,8 +387,8 @@ export class SnakeService {
     if (!head) return {};
     const cs = this.config.cellSize;
     const rot = this.getRotationForDirection(this.direction());
-    const x = head.pos.x * cs + cs / 2 - 20;
-    const y = head.pos.y * cs + cs / 2 - 16;
+    const x = head.pos.x * cs + cs / 2 - 26;
+    const y = head.pos.y * cs + cs / 2 - 25;
     return {
       left: `${x}px`,
       top: `${y}px`,

@@ -71,9 +71,13 @@ import { ThemeService } from '../../../core/services/theme.service';
           [class.is-biting]="snakeService.isEating()"
           [style]="snakeService.getHeadStyle()"
         >
+          <div class="eye-right"></div>
+          <div class="brow"></div>
+          <div class="chin"></div>
           @if (snakeService.tongueOut()) {
             <span class="tongue">👅</span>
           }
+          <div class="mouth"></div>
         </div>
         
         <div 
@@ -229,52 +233,92 @@ import { ThemeService } from '../../../core/services/theme.service';
 
     .snake-head {
       position: absolute;
-      width: 42px;
-      height: 36px;
+      width: 52px;
+      height: 50px;
       z-index: 10;
-      border-radius: 50%;
+      border-radius: 50% 50% 45% 45%;
       background: #ffcc00;
       border: 3px solid #1a1a1a;
-      box-shadow: inset 0 -5px 0 rgba(0,0,0,0.15);
+      box-shadow: inset 0 -6px 0 rgba(0,0,0,0.15);
     }
 
-    .snake-head.is-biting {
-      animation: bite 0.1s ease-in-out infinite alternate;
+    .snake-head::before {
+      content: '';
+      position: absolute;
+      top: -10px;
+      left: 6px;
+      width: 36px;
+      height: 16px;
+      background: #ffcc00;
+      border: 3px solid #1a1a1a;
+      border-bottom: none;
+      border-radius: 60% 60% 0 0;
+      z-index: 10;
     }
 
-    @keyframes bite {
-      0% { transform: scale(1.2); }
-      100% { transform: scale(1.35); }
-    }
-
-    .snake-head::before,
     .snake-head::after {
       content: '';
       position: absolute;
-      top: 8px;
-      width: 16px;
-      height: 16px;
-      background: radial-gradient(circle at 50% 50%, #1a1a1a 1.5px, #fff 1.5px, #fff 14px, #1a1a1a 14px);
+      top: 12px;
+      width: 20px;
+      height: 20px;
+      background: radial-gradient(circle at 50% 50%, #1a1a1a 2px, #fff 2px, #fff 17px, #1a1a1a 17px);
       border-radius: 50%;
       z-index: 15;
       animation: lookAround 2s ease-in-out infinite alternate;
     }
 
-    @keyframes lookAround {
-      0% { transform: translate(-3px, 0); }
-      50% { transform: translate(3px, 0); }
-      100% { transform: translate(-3px, 0); }
+    .snake-head .eye-right {
+      position: absolute;
+      top: 12px;
+      right: 8px;
+      width: 20px;
+      height: 20px;
+      background: radial-gradient(circle at 50% 50%, #1a1a1a 2px, #fff 2px, #fff 17px, #1a1a1a 17px);
+      border-radius: 50%;
+      z-index: 15;
+      animation: lookAround 2s ease-in-out infinite alternate-reverse;
     }
 
-    .snake-head::before { left: 3px; }
-    .snake-head::after { right: 3px; }
+    .snake-head .brow {
+      position: absolute;
+      top: 4px;
+      left: 4px;
+      width: 42px;
+      height: 10px;
+      background: transparent;
+      border: 3px solid #1a1a1a;
+      border-bottom: none;
+      border-radius: 50% 50% 0 0;
+      z-index: 20;
+    }
+
+    .snake-head .chin {
+      position: absolute;
+      bottom: -6px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 30px;
+      height: 12px;
+      background: #ffcc00;
+      border: 3px solid #1a1a1a;
+      border-top: none;
+      border-radius: 0 0 50% 50%;
+      z-index: 5;
+    }
+
+    @keyframes lookAround {
+      0% { transform: translate(-2px, 0); }
+      50% { transform: translate(2px, 0); }
+      100% { transform: translate(-2px, 0); }
+    }
 
     .snake-head .tongue {
       position: absolute;
-      bottom: -10px;
+      bottom: -12px;
       left: 50%;
       transform: translateX(-50%);
-      font-size: 14px;
+      font-size: 16px;
       z-index: 20;
       animation: tongueWag 0.12s infinite alternate;
       filter: drop-shadow(1px 1px 0 #1a1a1a);
@@ -283,6 +327,33 @@ import { ThemeService } from '../../../core/services/theme.service';
     @keyframes tongueWag {
       0% { transform: translateX(-50%) rotate(-25deg); }
       100% { transform: translateX(-50%) rotate(25deg); }
+    }
+
+    .snake-head .mouth {
+      position: absolute;
+      bottom: 6px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 20px;
+      height: 10px;
+      border: 3px solid #1a1a1a;
+      border-top: none;
+      border-radius: 0 0 50% 50%;
+      background: #1a1a1a;
+    }
+
+    .snake-head.is-biting {
+      animation: bite 0.15s ease-in-out infinite alternate;
+    }
+
+    @keyframes bite {
+      0% { transform: scale(1.15); }
+      100% { transform: scale(1.3); }
+    }
+
+    .snake-head.is-biting .mouth {
+      height: 14px;
+      background: #ff6b81;
     }
 
     .food {
