@@ -5,6 +5,7 @@ const highScoreEl = document.getElementById('high-score');
 const restartBtn = document.getElementById('restart-btn');
 const recordsBtn = document.getElementById('records-btn');
 const userDisplay = document.getElementById('current-user-display');
+const themeToggle = document.getElementById('theme-toggle');
 
 const usernameModal = document.getElementById('username-modal');
 const usernameInput = document.getElementById('username-input');
@@ -30,7 +31,25 @@ let snake, food, direction, nextDirection, score, highScore, gameOver, paused, l
 let username = '';
 let confettiPieces = [];
 let confettiAnimId = null;
-let eatBurstPending = false;
+
+// --- Theme ---
+function loadTheme() {
+  const saved = localStorage.getItem('snake_theme') || 'dark';
+  document.documentElement.setAttribute('data-theme', saved);
+  themeToggle.textContent = saved === 'dark' ? '🌙' : '☀️';
+  return saved;
+}
+
+function toggleTheme() {
+  const current = document.documentElement.getAttribute('data-theme');
+  const next = current === 'dark' ? 'light' : 'dark';
+  document.documentElement.setAttribute('data-theme', next);
+  localStorage.setItem('snake_theme', next);
+  themeToggle.textContent = next === 'dark' ? '🌙' : '☀️';
+}
+
+themeToggle.addEventListener('click', toggleTheme);
+loadTheme();
 
 // --- User ---
 function loadUser() {
@@ -204,7 +223,7 @@ function spawnFood() {
 function draw() {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-  ctx.strokeStyle = '#1a1a30';
+  ctx.strokeStyle = getComputedStyle(document.documentElement).getPropertyValue('--grid').trim();
   ctx.lineWidth = 0.5;
   for (let x = 0; x <= canvas.width; x += SIZE) {
     ctx.beginPath();
@@ -256,7 +275,7 @@ function draw() {
   if (paused && !gameOver) {
     ctx.fillStyle = 'rgba(0,0,0,0.4)';
     ctx.fillRect(0, 0, canvas.width, canvas.height);
-    ctx.fillStyle = '#ffffff';
+    ctx.fillStyle = getComputedStyle(document.documentElement).getPropertyValue('--text-bright').trim();
     ctx.font = 'bold 28px "Segoe UI", sans-serif';
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
